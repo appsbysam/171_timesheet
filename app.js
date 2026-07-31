@@ -1,9 +1,21 @@
+const SUPABASE_URL="https://cebgyyairqctbgrocxgl.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_VFT7GrL1rJtmV0hv0CPrlg_qjZXq4PT";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+
 const days=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const timesheet=document.getElementById("timesheet");
 const template=document.getElementById("dayTemplate");
 const weekStart=document.getElementById("weekStart");
 const weekEnd=document.getElementById("weekEnd");
 const statusEl=document.getElementById("status");
+
+let saveTimer=null;
+let isLoading=false;
+
+function setStatus(message,isError=false){
+  statusEl.textContent=message;
+  statusEl.classList.toggle("error",isError);
+}
 
 function makeTimeOptions(startMinutes,endMinutes){
   const options=[];
@@ -12,25 +24,20 @@ function makeTimeOptions(startMinutes,endMinutes){
     const mins=minutes%60;
     const suffix=hour24<12?"am":"pm";
     const hour12=hour24%12===0?12:hour24%12;
-    const label=`${hour12}:${String(mins).padStart(2,"0")} ${suffix}`;
-    const value=`${String(hour24).padStart(2,"0")}:${String(mins).padStart(2,"0")}`;
-    options.push({value,label});
+    options.push({
+      value:`${String(hour24).padStart(2,"0")}:${String(mins).padStart(2,"0")}`,
+      label:`${hour12}:${String(mins).padStart(2,"0")} ${suffix}`
+    });
   }
   return options;
 }
 
 function getTimeOptions(day,type){
   const isSaturday=day==="Saturday";
-
   if(type==="start"){
-    return isSaturday
-      ? makeTimeOptions(390,600)   // 6:30 am to 10:00 am
-      : makeTimeOptions(300,660);  // 5:00 am to 11:00 am
+    return isSaturday ? makeTimeOptions(390,600) : makeTimeOptions(300,660);
   }
-
-  return isSaturday
-    ? makeTimeOptions(480,780)     // 8:00 am to 1:00 pm
-    : makeTimeOptions(480,900);    // 8:00 am to 3:00 pm
+  return isSaturday ? makeTimeOptions(480,780) : makeTimeOptions(480,900);
 }
 
 function populateSelect(select,options){
@@ -65,7 +72,7 @@ function build(){
         select.addEventListener("change",()=>{
           calculateRow(row);
           calculateTotals();
-          save(false);
+          scheduleSave();
         });
       });
     });
@@ -85,35 +92,31 @@ function formatDecimal(totalMinutes){
 }
 
 function calculateRow(row){
-  const s=row.querySelector(".start");
-  const f=row.querySelector(".finish");
-  const start=minutes(s.value);
-  const finish=minutes(f.value);
+  const startSelect=row.querySelector(".start");
+  const finishSelect=row.querySelector(".finish");
+  const start=minutes(startSelect.value);
+  const finish=minutes(finishSelect.value);
   let total=0;
 
-  s.classList.remove("invalid");
-  f.classList.remove("invalid");
+  startSelect.classList.remove("invalid");
+  finishSelect.classList.remove("invalid");
 
   if(start!==null&&finish!==null){
     total=finish-start;
-    if(total<0 || total>630){
-      s.classList.add("invalid");
-      f.classList.add("invalid");
+    if(total<0||total>630){
+      startSelect.classList.add("invalid");
+      finishSelect.classList.add("invalid");
       total=0;
     }
   }
 
   row.dataset.minutes=total;
   row.querySelector(".row-total").textContent=formatDecimal(total);
-
-  // Highlight the row once both a valid start and finish time are selected.
-  const isComplete=start!==null&&finish!==null&&finish>=start;
-  row.classList.toggle("completed",isComplete);
+  row.classList.toggle("completed",start!==null&&finish!==null&&finish>=start);
 }
 
 function calculateTotals(){
   const totals={Mikayla:0,Monique:0};
-
   document.querySelectorAll(".shift-row").forEach(row=>{
     totals[row.dataset.employee]+=Number(row.dataset.minutes||0);
   });
@@ -133,85 +136,161 @@ function updateWeekEnd(){
   weekEnd.value=d.toISOString().slice(0,10);
 }
 
-function collect(){
-  const shifts={};
+function managerMetadata(){
+  return JSON.stringify({
+    managerNotes:document.getElementById("managerNotes").value,
+    managerName:document.getElementById("managerName").value,
+    managerDate:document.getElementById("managerDate").value
+  });
+}
+
+function collectRows(){
+  const rows=[];
+  const notes=managerMetadata();
 
   document.querySelectorAll(".day-block").forEach(block=>{
-    shifts[block.dataset.day]={};
-
     block.querySelectorAll(".shift-row").forEach(row=>{
-      shifts[block.dataset.day][row.dataset.employee]={
-        start:row.querySelector(".start").value,
-        finish:row.querySelector(".finish").value
-      };
+      rows.push({
+        week_start:weekStart.value,
+        employee:row.dataset.employee,
+        day:block.dataset.day,
+        start_time:row.querySelector(".start").value||null,
+        finish_time:row.querySelector(".finish").value||null,
+        hours:Number(row.dataset.minutes||0)/60,
+        notes
+      });
     });
   });
 
-  return{
-    weekStart:weekStart.value,
-    managerNotes:document.getElementById("managerNotes").value,
-    managerName:document.getElementById("managerName").value,
-    managerDate:document.getElementById("managerDate").value,
-    shifts
-  };
+  return rows;
 }
 
-function save(show=true){
-  localStorage.setItem(storageKey(),JSON.stringify(collect()));
-
-  if(show){
-    statusEl.textContent="Saved on this device.";
-    setTimeout(()=>statusEl.textContent="",1500);
-  }
+function scheduleSave(){
+  if(isLoading||!weekStart.value)return;
+  clearTimeout(saveTimer);
+  setStatus("Saving…");
+  saveTimer=setTimeout(()=>save(false),700);
 }
 
-function load(){
-  const raw=localStorage.getItem(storageKey());
-  if(!raw)return;
+async function save(show=true){
+  if(!weekStart.value)return;
+
+  clearTimeout(saveTimer);
+  const rows=collectRows();
 
   try{
-    const data=JSON.parse(raw);
-    document.getElementById("managerNotes").value=data.managerNotes||"";
-    document.getElementById("managerName").value=data.managerName||"";
-    document.getElementById("managerDate").value=data.managerDate||"";
+    setStatus("Saving…");
 
-    document.querySelectorAll(".day-block").forEach(block=>{
-      block.querySelectorAll(".shift-row").forEach(row=>{
-        const shift=data.shifts?.[block.dataset.day]?.[row.dataset.employee]||{};
-        row.querySelector(".start").value=shift.start||"";
-        row.querySelector(".finish").value=shift.finish||"";
-        calculateRow(row);
-      });
-    });
+    const {error:deleteError}=await db
+      .from("timesheets")
+      .delete()
+      .eq("week_start",weekStart.value);
 
-    calculateTotals();
-  }catch(e){
-    console.error(e);
+    if(deleteError)throw deleteError;
+
+    const {error:insertError}=await db
+      .from("timesheets")
+      .insert(rows);
+
+    if(insertError)throw insertError;
+
+    setStatus(show?"Saved online.":"Saved");
+    setTimeout(()=>{
+      if(statusEl.textContent==="Saved"||statusEl.textContent==="Saved online.")setStatus("");
+    },1800);
+  }catch(error){
+    console.error(error);
+    setStatus(`Save failed: ${error.message}`,true);
   }
 }
 
-weekStart.addEventListener("change",()=>{
-  updateWeekEnd();
-  load();
-});
-
-["managerNotes","managerName","managerDate"].forEach(id=>{
-  document.getElementById(id).addEventListener("input",()=>save(false));
-});
-
-document.getElementById("saveBtn").addEventListener("click",()=>save(true));
-document.getElementById("printBtn").addEventListener("click",()=>window.print());
-
-document.getElementById("resetBtn").addEventListener("click",()=>{
-  if(!confirm("Clear all entries for this week?"))return;
-
-  localStorage.removeItem(storageKey());
+function clearForm(){
   document.querySelectorAll(".shift-row select").forEach(select=>select.value="");
   document.querySelectorAll(".shift-row").forEach(calculateRow);
   document.getElementById("managerNotes").value="";
   document.getElementById("managerName").value="";
   calculateTotals();
-  statusEl.textContent="Week cleared.";
+}
+
+async function load(){
+  if(!weekStart.value)return;
+
+  isLoading=true;
+  clearForm();
+  setStatus("Loading…");
+
+  try{
+    const {data,error}=await db
+      .from("timesheets")
+      .select("*")
+      .eq("week_start",weekStart.value);
+
+    if(error)throw error;
+
+    if(data&&data.length){
+      let metadata={};
+      try{ metadata=JSON.parse(data[0].notes||"{}"); }catch{}
+
+      document.getElementById("managerNotes").value=metadata.managerNotes||"";
+      document.getElementById("managerName").value=metadata.managerName||"";
+      document.getElementById("managerDate").value=metadata.managerDate||document.getElementById("managerDate").value;
+
+      data.forEach(record=>{
+        const block=[...document.querySelectorAll(".day-block")]
+          .find(item=>item.dataset.day===record.day);
+        if(!block)return;
+
+        const row=[...block.querySelectorAll(".shift-row")]
+          .find(item=>item.dataset.employee===record.employee);
+        if(!row)return;
+
+        row.querySelector(".start").value=record.start_time||"";
+        row.querySelector(".finish").value=record.finish_time||"";
+        calculateRow(row);
+      });
+    }
+
+    calculateTotals();
+    setStatus(data&&data.length?"Loaded online.":"New week—no saved entries yet.");
+    setTimeout(()=>setStatus(""),1800);
+  }catch(error){
+    console.error(error);
+    setStatus(`Load failed: ${error.message}`,true);
+  }finally{
+    isLoading=false;
+  }
+}
+
+weekStart.addEventListener("change",async()=>{
+  updateWeekEnd();
+  await load();
+});
+
+["managerNotes","managerName","managerDate"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",scheduleSave);
+});
+
+document.getElementById("saveBtn").addEventListener("click",()=>save(true));
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+document.getElementById("resetBtn").addEventListener("click",async()=>{
+  if(!confirm("Clear all entries for this week?"))return;
+
+  try{
+    setStatus("Clearing…");
+    const {error}=await db
+      .from("timesheets")
+      .delete()
+      .eq("week_start",weekStart.value);
+    if(error)throw error;
+
+    clearForm();
+    setStatus("Week cleared online.");
+    setTimeout(()=>setStatus(""),1800);
+  }catch(error){
+    console.error(error);
+    setStatus(`Clear failed: ${error.message}`,true);
+  }
 });
 
 build();
@@ -225,5 +304,5 @@ weekStart.value=monday.toISOString().slice(0,10);
 document.getElementById("managerDate").value=today.toISOString().slice(0,10);
 
 updateWeekEnd();
-load();
 calculateTotals();
+load();

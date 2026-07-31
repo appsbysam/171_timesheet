@@ -1,13 +1,9 @@
-# 171 Café Staff Timesheet — Completed Row Highlight
+# 171 Café Staff Timesheet — Supabase Phase 1
 
-This version includes:
+This version saves and loads timesheet entries from the Supabase `timesheets` table.
 
-- Correct spelling: Mikayla
-- Decimal-hour calculations
-- Half-hour dropdown intervals
-- Monday to Friday start times: 5:00 am to 11:00 am
-- Monday to Friday finish times: 8:00 am to 3:00 pm
-- Saturday start times: 6:30 am to 10:00 am
-- Saturday finish times: 8:00 am to 1:00 pm
-- A row turns green after both a valid start and finish time are selected
-- Daily and weekly totals shown as decimal hours
+Important:
+- It uses the browser-safe Supabase publishable key.
+- The temporary public RLS policies must remain enabled.
+- Anyone with the website link can currently view and edit the shared data.
+- Employee logins and manager-only access are planned for Phase 2.

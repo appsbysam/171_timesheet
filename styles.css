@@ -81,3 +81,8 @@ button.danger{color:var(--danger);border-color:var(--danger)}
     print-color-adjust:exact;
   }
 }
+
+.status.error{
+  color:#a40000;
+  font-weight:700;
+}
