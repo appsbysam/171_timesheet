@@ -1,4 +1,4 @@
-# 171 Café Compact Timesheet — Day-Specific Dropdown Version
+# 171 Café Staff Timesheet — Completed Row Highlight
 
 This version includes:
 
@@ -9,9 +9,5 @@ This version includes:
 - Monday to Friday finish times: 8:00 am to 3:00 pm
 - Saturday start times: 6:30 am to 10:00 am
 - Saturday finish times: 8:00 am to 1:00 pm
-- Blank “Select” option for unused shifts
+- A row turns green after both a valid start and finish time are selected
 - Daily and weekly totals shown as decimal hours
-
-Examples:
-- 5:00 am to 9:30 am = 4.50 hours
-- 6:30 am to 12:30 pm = 6.00 hours

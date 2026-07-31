@@ -105,6 +105,10 @@ function calculateRow(row){
 
   row.dataset.minutes=total;
   row.querySelector(".row-total").textContent=formatDecimal(total);
+
+  // Highlight the row once both a valid start and finish time are selected.
+  const isComplete=start!==null&&finish!==null&&finish>=start;
+  row.classList.toggle("completed",isComplete);
 }
 
 function calculateTotals(){

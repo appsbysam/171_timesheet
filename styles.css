@@ -61,3 +61,23 @@ button.danger{color:var(--danger);border-color:var(--danger)}
   .summary-card>div{padding:4px 7px}
   .manager-card{margin-top:4px;padding:5px}
 }
+
+
+/* Completed shift row */
+.shift-row.completed{
+  background:#d9f4df;
+  border-color:#79b986;
+}
+
+.shift-row.completed .row-total{
+  color:#17652a;
+  font-weight:800;
+}
+
+@media print{
+  .shift-row.completed{
+    background:#d9f4df !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+}
