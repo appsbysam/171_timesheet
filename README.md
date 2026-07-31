@@ -1,14 +1,14 @@
-# 171 Café Staff Timesheet — Polished Buttons
+# 171 Café Staff Timesheet — Fixed Polished Buttons
 
-This version includes:
+This corrected version includes:
 
-- Supabase cloud saving and loading
-- Previous Week and Next Week buttons
-- Bright green Save button when changes are pending
-- Dark muted green/grey Saved button after automatic saving
-- Saving state shown as “Saving…”
-- Retry Save state if a save fails
+- Visible Previous Week and Next Week buttons
+- Visible Print/PDF button
 - Solid red Clear button with white text
-- Existing completed-row green highlighting
+- Bright green Save button after an edit
+- “Saving…” state during automatic saving
+- Muted dark green/grey “✓ Saved” state after saving
+- “Retry Save” state if saving fails
+- Supabase cloud saving and loading
+- Green completed-row highlighting
 - Decimal-hour totals
-- Print/PDF support

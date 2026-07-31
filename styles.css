@@ -124,59 +124,60 @@ button.danger{color:var(--danger);border-color:var(--danger)}
 }
 
 
-/* Polished action buttons */
-.save-btn,
-.clear-btn{
-  color:#fff !important;
-  border:none !important;
-  font-weight:800;
+/* Polished Save and Clear buttons */
+.toolbar .save-btn,
+.toolbar .clear-btn{
+  color:#fff;
+  border:none;
+  font-weight:900;
   transition:background-color .18s ease, opacity .18s ease, transform .18s ease;
 }
 
-.save-btn.is-ready{
-  background:#20a84b !important;
+.toolbar .save-btn.is-ready{
+  background:#19a447;
   cursor:pointer;
 }
 
-.save-btn.is-ready:hover{
-  background:#17883c !important;
+.toolbar .save-btn.is-ready:hover{
+  background:#14863a;
   transform:translateY(-1px);
 }
 
-.save-btn.is-saving{
-  background:#4f765a !important;
+.toolbar .save-btn.is-saving{
+  background:#4e7158;
   cursor:wait;
 }
 
-.save-btn.is-saved{
-  background:#748179 !important;
+.toolbar .save-btn.is-saved{
+  background:#707b74;
   cursor:default;
-  opacity:.82;
+  opacity:.78;
 }
 
-.save-btn.is-error{
-  background:#9a6a18 !important;
+.toolbar .save-btn.is-error{
+  background:#a06b16;
   cursor:pointer;
 }
 
-.clear-btn{
-  background:#d72626 !important;
+.toolbar .clear-btn{
+  background:#d32626;
+  color:#fff;
+  border-color:#d32626;
   cursor:pointer;
 }
 
-.clear-btn:hover{
-  background:#b71c1c !important;
+.toolbar .clear-btn:hover{
+  background:#ad1d1d;
+  border-color:#ad1d1d;
   transform:translateY(-1px);
 }
 
-.save-btn:disabled{
-  color:#fff !important;
-  opacity:.88;
+.toolbar .save-btn:disabled{
+  color:#fff;
 }
 
 @media print{
-  .save-btn,
-  .clear-btn{
+  .toolbar{
     display:none !important;
   }
 }
