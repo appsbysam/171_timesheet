@@ -1,0 +1,63 @@
+*{box-sizing:border-box}
+:root{--black:#111;--line:#bbb;--light:#f3f3f3;--danger:#9c1e1e}
+html,body{margin:0;max-width:100%;overflow-x:hidden}
+body{font-family:Arial,Helvetica,sans-serif;background:#eee;color:#111}
+button,input,select,textarea{font:inherit}
+.app-shell{width:100%;max-width:620px;margin:0 auto;background:#fff;min-height:100vh;padding:9px}
+.brand-header{display:flex;align-items:center;gap:10px;border-bottom:2px solid #111;padding-bottom:7px}
+.brand-copy{min-width:0}
+.brand-header h1{margin:0;font-size:clamp(30px,10vw,50px);line-height:.9;white-space:nowrap}
+.brand-header p{margin:5px 0 0;font-size:clamp(10px,3vw,15px);font-weight:900;letter-spacing:1px}
+.logo-badge{width:62px;height:62px;min-width:62px;border-radius:50%;background:#080808;color:#fff;border:3px double #fff;outline:2px solid #111;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center;padding:6px 4px;position:relative}
+.logo-badge .small{font-size:7px;border-block:1px solid #fff}
+.logo-badge .seven{font-size:23px}
+.logo-badge .on-pitt{position:absolute;bottom:7px;font-size:6px}
+.week-card{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0;padding:8px;background:#f5f5f5;border:1px solid #bbb;border-radius:7px}
+label{display:block;font-size:10px;font-weight:900;text-transform:uppercase}
+.week-card input,.manager-card input,.manager-card textarea{width:100%;min-width:0;margin-top:4px;padding:8px;border:1px solid #aaa;border-radius:6px;background:#fff;font-size:13px}
+.toolbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+button{padding:8px 4px;border:1px solid #111;border-radius:6px;background:#fff;font-size:12px;font-weight:900}
+button.primary{background:#111;color:#fff}
+button.danger{color:var(--danger);border-color:var(--danger)}
+.status{height:17px;margin:3px 0;font-size:11px;font-weight:700;color:#28633e}
+.day-block{margin:7px 0;border:1px solid #aaa;border-radius:7px;overflow:hidden}
+.day-block h2{margin:0;padding:5px 8px;background:#111;color:#fff;font-size:12px;letter-spacing:.8px}
+.column-headings,.shift-row{display:grid;grid-template-columns:1.12fr 1fr 1fr .72fr;gap:5px;align-items:center}
+.column-headings{padding:4px 6px 2px;background:#eee;color:#555;font-size:8px;font-weight:900;text-transform:uppercase}
+.shift-row{padding:5px 6px;border-top:1px solid #ddd}
+.shift-row strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.shift-row select{width:100%;min-width:0;height:34px;padding:2px 1px;border:1px solid #999;border-radius:5px;background:#fff;font-size:11px}
+.row-total{display:flex;align-items:center;justify-content:center;height:34px;border:1px solid #aaa;border-radius:5px;background:#f1f1f1;font-size:12px;font-weight:900}
+.invalid{background:#fff0f0!important;border-color:#b00020!important}
+.summary-card{margin-top:9px;border:2px solid #111;border-radius:7px;overflow:hidden}
+.summary-card>div{display:flex;justify-content:space-between;padding:7px 9px;border-bottom:1px solid #ccc;font-size:12px;font-weight:900}
+.summary-card>div:last-child{border-bottom:0}
+.summary-card .grand{background:#111;color:#fff;font-size:14px}
+.manager-card{margin-top:9px;padding:8px;border:1px solid #aaa;border-radius:7px}
+.manager-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+@media(max-width:380px){
+  .app-shell{padding:6px}
+  .logo-badge{width:54px;height:54px;min-width:54px}
+  .brand-header h1{font-size:28px}
+  .week-card{grid-template-columns:1fr 1fr}
+  .column-headings,.shift-row{grid-template-columns:1.08fr .95fr .95fr .68fr;gap:3px}
+  .shift-row{padding:4px}
+  .shift-row select{font-size:10px;padding:1px 0}
+  .shift-row strong{font-size:10px}
+  .row-total{font-size:11px}
+}
+@media print{
+  body{background:#fff}
+  .app-shell{max-width:none;padding:0}
+  .no-print{display:none!important}
+  .brand-header{padding-bottom:4px}
+  .week-card{margin:5px 0;padding:5px}
+  .day-block{margin:3px 0}
+  .day-block h2{padding:3px 6px;font-size:10px}
+  .column-headings{padding:2px 5px}
+  .shift-row{padding:2px 5px}
+  .shift-row select,.row-total{height:24px;border:0;font-size:9px}
+  .summary-card{margin-top:4px}
+  .summary-card>div{padding:4px 7px}
+  .manager-card{margin-top:4px;padding:5px}
+}

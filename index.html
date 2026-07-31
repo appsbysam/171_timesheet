@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <title>171 Café Staff Timesheet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="brand-header">
+      <div class="logo-badge">
+        <span class="small">ONE</span><span class="seven">7</span><span class="small">ONE</span>
+        <span class="on-pitt">On Pitt</span>
+      </div>
+      <div class="brand-copy">
+        <h1>171 CAFÉ</h1>
+        <p>STAFF TIMESHEET</p>
+      </div>
+    </header>
+
+    <section class="week-card">
+      <label>Week starting<input id="weekStart" type="date" /></label>
+      <label>Week ending<input id="weekEnd" type="date" readonly /></label>
+    </section>
+
+    <section class="toolbar no-print">
+      <button id="saveBtn" class="primary">Save</button>
+      <button id="printBtn">Print/PDF</button>
+      <button id="resetBtn" class="danger">Clear</button>
+    </section>
+
+    <p id="status" class="status no-print" aria-live="polite"></p>
+
+    <section id="timesheet" class="timesheet"></section>
+
+    <section class="summary-card">
+      <div><span>Mikayla</span><strong id="michaelaTotal">0:00</strong></div>
+      <div><span>Monique</span><strong id="moniqueTotal">0:00</strong></div>
+      <div class="grand"><span>Week total</span><strong id="weekTotal">0:00</strong></div>
+    </section>
+
+    <section class="manager-card">
+      <label>Manager notes<textarea id="managerNotes" rows="3"></textarea></label>
+      <div class="manager-grid">
+        <label>Manager<input id="managerName" type="text" /></label>
+        <label>Date<input id="managerDate" type="date" /></label>
+      </div>
+    </section>
+  </main>
+
+  <template id="dayTemplate">
+    <article class="day-block">
+      <h2></h2>
+      <div class="column-headings">
+        <span>Name</span><span>Start</span><span>Finish</span><span>Total</span>
+      </div>
+      <div class="shift-row" data-employee="Mikayla">
+        <strong>Mikayla</strong>
+        <select class="start" aria-label="Start time"></select>
+        <select class="finish" aria-label="Finish time"></select>
+        <output class="row-total">0:00</output>
+      </div>
+      <div class="shift-row" data-employee="Monique">
+        <strong>Monique</strong>
+        <select class="start" aria-label="Start time"></select>
+        <select class="finish" aria-label="Finish time"></select>
+        <output class="row-total">0:00</output>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
