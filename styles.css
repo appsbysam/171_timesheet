@@ -122,3 +122,61 @@ button.danger{color:var(--danger);border-color:var(--danger)}
     grid-template-columns:1fr;
   }
 }
+
+
+/* Polished action buttons */
+.save-btn,
+.clear-btn{
+  color:#fff !important;
+  border:none !important;
+  font-weight:800;
+  transition:background-color .18s ease, opacity .18s ease, transform .18s ease;
+}
+
+.save-btn.is-ready{
+  background:#20a84b !important;
+  cursor:pointer;
+}
+
+.save-btn.is-ready:hover{
+  background:#17883c !important;
+  transform:translateY(-1px);
+}
+
+.save-btn.is-saving{
+  background:#4f765a !important;
+  cursor:wait;
+}
+
+.save-btn.is-saved{
+  background:#748179 !important;
+  cursor:default;
+  opacity:.82;
+}
+
+.save-btn.is-error{
+  background:#9a6a18 !important;
+  cursor:pointer;
+}
+
+.clear-btn{
+  background:#d72626 !important;
+  cursor:pointer;
+}
+
+.clear-btn:hover{
+  background:#b71c1c !important;
+  transform:translateY(-1px);
+}
+
+.save-btn:disabled{
+  color:#fff !important;
+  opacity:.88;
+}
+
+@media print{
+  .save-btn,
+  .clear-btn{
+    display:none !important;
+  }
+}

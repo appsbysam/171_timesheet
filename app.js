@@ -17,6 +17,30 @@ function setStatus(message,isError=false){
   statusEl.classList.toggle("error",isError);
 }
 
+const saveBtn=document.getElementById("saveBtn");
+
+function setSaveButtonState(state){
+  saveBtn.classList.remove("is-ready","is-saving","is-saved","is-error");
+
+  if(state==="ready"){
+    saveBtn.classList.add("is-ready");
+    saveBtn.disabled=false;
+    saveBtn.textContent="Save";
+  }else if(state==="saving"){
+    saveBtn.classList.add("is-saving");
+    saveBtn.disabled=true;
+    saveBtn.textContent="Saving…";
+  }else if(state==="error"){
+    saveBtn.classList.add("is-error");
+    saveBtn.disabled=false;
+    saveBtn.textContent="Retry Save";
+  }else{
+    saveBtn.classList.add("is-saved");
+    saveBtn.disabled=true;
+    saveBtn.textContent="✓ Saved";
+  }
+}
+
 function makeTimeOptions(startMinutes,endMinutes){
   const options=[];
   for(let minutes=startMinutes;minutes<=endMinutes;minutes+=30){
@@ -168,7 +192,8 @@ function collectRows(){
 function scheduleSave(){
   if(isLoading||!weekStart.value)return;
   clearTimeout(saveTimer);
-  setStatus("Saving…");
+  setSaveButtonState("ready");
+  setStatus("Unsaved changes…");
   saveTimer=setTimeout(()=>save(false),700);
 }
 
@@ -179,6 +204,7 @@ async function save(show=true){
   const rows=collectRows();
 
   try{
+    setSaveButtonState("saving");
     setStatus("Saving…");
 
     const {error:deleteError}=await db
@@ -194,12 +220,14 @@ async function save(show=true){
 
     if(insertError)throw insertError;
 
-    setStatus(show?"Saved online.":"Saved");
+    setSaveButtonState("saved");
+    setStatus(show?"All changes saved online.":"All changes saved.");
     setTimeout(()=>{
-      if(statusEl.textContent==="Saved"||statusEl.textContent==="Saved online.")setStatus("");
+      if(statusEl.textContent==="All changes saved."||statusEl.textContent==="All changes saved online.")setStatus("");
     },1800);
   }catch(error){
     console.error(error);
+    setSaveButtonState("error");
     setStatus(`Save failed: ${error.message}`,true);
   }
 }
@@ -217,6 +245,7 @@ async function load(){
 
   isLoading=true;
   clearForm();
+  setSaveButtonState("saving");
   setStatus("Loading…");
 
   try{
@@ -251,10 +280,12 @@ async function load(){
     }
 
     calculateTotals();
+    setSaveButtonState("saved");
     setStatus(data&&data.length?"Loaded online.":"New week—no saved entries yet.");
     setTimeout(()=>setStatus(""),1800);
   }catch(error){
     console.error(error);
+    setSaveButtonState("error");
     setStatus(`Load failed: ${error.message}`,true);
   }finally{
     isLoading=false;
@@ -285,10 +316,12 @@ document.getElementById("resetBtn").addEventListener("click",async()=>{
     if(error)throw error;
 
     clearForm();
+    setSaveButtonState("saved");
     setStatus("Week cleared online.");
     setTimeout(()=>setStatus(""),1800);
   }catch(error){
     console.error(error);
+    setSaveButtonState("error");
     setStatus(`Clear failed: ${error.message}`,true);
   }
 });
@@ -319,4 +352,5 @@ document.getElementById("managerDate").value=today.toISOString().slice(0,10);
 
 updateWeekEnd();
 calculateTotals();
+setSaveButtonState("saved");
 load();

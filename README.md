@@ -1,14 +1,14 @@
-# 171 Café Staff Timesheet — Supabase Week Navigation
+# 171 Café Staff Timesheet — Polished Buttons
 
-This deployment-ready version includes:
+This version includes:
 
 - Supabase cloud saving and loading
-- Previous Week button
-- Next Week button
-- Automatic loading for whichever week is selected
-- Previous weeks remain stored in Supabase
-- Green completed-row highlighting
+- Previous Week and Next Week buttons
+- Bright green Save button when changes are pending
+- Dark muted green/grey Saved button after automatic saving
+- Saving state shown as “Saving…”
+- Retry Save state if a save fails
+- Solid red Clear button with white text
+- Existing completed-row green highlighting
 - Decimal-hour totals
 - Print/PDF support
-
-The Copy Previous Week feature is not included.
