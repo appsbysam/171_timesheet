@@ -1,9 +1,14 @@
-# 171 Café Staff Timesheet — Supabase Phase 1
+# 171 Café Staff Timesheet — Supabase Week Navigation
 
-This version saves and loads timesheet entries from the Supabase `timesheets` table.
+This deployment-ready version includes:
 
-Important:
-- It uses the browser-safe Supabase publishable key.
-- The temporary public RLS policies must remain enabled.
-- Anyone with the website link can currently view and edit the shared data.
-- Employee logins and manager-only access are planned for Phase 2.
+- Supabase cloud saving and loading
+- Previous Week button
+- Next Week button
+- Automatic loading for whichever week is selected
+- Previous weeks remain stored in Supabase
+- Green completed-row highlighting
+- Decimal-hour totals
+- Print/PDF support
+
+The Copy Previous Week feature is not included.

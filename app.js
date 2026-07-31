@@ -293,6 +293,20 @@ document.getElementById("resetBtn").addEventListener("click",async()=>{
   }
 });
 
+
+function changeWeek(daysToAdd){
+  if(!weekStart.value)return;
+
+  const date=new Date(`${weekStart.value}T12:00:00`);
+  date.setDate(date.getDate()+daysToAdd);
+  weekStart.value=date.toISOString().slice(0,10);
+  updateWeekEnd();
+  load();
+}
+
+document.getElementById("previousWeekBtn").addEventListener("click",()=>changeWeek(-7));
+document.getElementById("nextWeekBtn").addEventListener("click",()=>changeWeek(7));
+
 build();
 
 const today=new Date();

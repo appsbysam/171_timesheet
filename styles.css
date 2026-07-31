@@ -86,3 +86,39 @@ button.danger{color:var(--danger);border-color:var(--danger)}
   color:#a40000;
   font-weight:700;
 }
+
+
+/* Previous and next week navigation */
+.week-fields{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.week-nav{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.week-nav button{
+  min-height:44px;
+  padding:10px 12px;
+  border:1px solid #c9c9c9;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.week-nav button:hover{
+  background:#f2f2f2;
+}
+
+@media (max-width:600px){
+  .week-fields{
+    grid-template-columns:1fr;
+  }
+}

@@ -21,8 +21,14 @@
     </header>
 
     <section class="week-card">
-      <label>Week starting<input id="weekStart" type="date" /></label>
-      <label>Week ending<input id="weekEnd" type="date" readonly /></label>
+      <div class="week-fields">
+        <label>Week starting<input id="weekStart" type="date" /></label>
+        <label>Week ending<input id="weekEnd" type="date" readonly /></label>
+      </div>
+      <div class="week-nav no-print">
+        <button type="button" id="previousWeekBtn">← Previous Week</button>
+        <button type="button" id="nextWeekBtn">Next Week →</button>
+      </div>
     </section>
 
     <section class="toolbar no-print">
