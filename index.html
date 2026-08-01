@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#111111" />
   <title>171 Café Staff Timesheet</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -37,7 +42,10 @@
       <button id="resetBtn" class="clear-btn" type="button">Clear</button>
     </section>
 
-    <p id="status" class="status no-print" aria-live="polite"></p>
+    <div id="statusIndicator" class="status-indicator status-saved no-print" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="status">All changes saved</span>
+    </div>
 
     <section id="timesheet" class="timesheet"></section>
 
