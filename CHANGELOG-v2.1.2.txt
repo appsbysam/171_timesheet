@@ -1,0 +1,25 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.1.2
+Release Date: 2 August 2026
+====================================================
+
+BUG FIXES
+---------
+• Corrected the default Week Starting date.
+• The app now treats each week as Sunday through Saturday.
+• Sunday defaults forward to the Monday within that same week.
+• Monday through Saturday default to the Monday within that same week.
+
+EXAMPLES
+--------
+• Sunday 2 August 2026 → Monday 3 August 2026
+• Monday 3 August 2026 → Monday 3 August 2026
+• Saturday 8 August 2026 → Monday 3 August 2026
+
+FILES CHANGED
+-------------
+• app.js
+• CHANGELOG-v2.1.2.txt
+
+====================================================

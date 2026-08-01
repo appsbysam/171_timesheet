@@ -639,7 +639,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.1.1";
+  version.textContent = "Version 2.1.2";
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -2300,13 +2300,18 @@ async function initialiseApp() {
   const currentDay =
     monday.getDay();
 
+  /*
+    The app uses a Sunday-to-Saturday week.
+    Sunday points forward to the Monday within that week.
+    Monday through Saturday point back to that week's Monday.
+  */
+  const daysToMonday =
+    currentDay === 0
+      ? 1
+      : 1 - currentDay;
+
   monday.setDate(
-    monday.getDate() +
-      (
-        currentDay === 0
-          ? -6
-          : 1 - currentDay
-      )
+    monday.getDate() + daysToMonday
   );
 
   weekStart.value =
