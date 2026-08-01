@@ -83,6 +83,9 @@ const statusIndicator =
 const saveBtn =
   document.getElementById("saveBtn");
 
+const resetBtn =
+  document.getElementById("resetBtn");
+
 const manageStaffBtn =
   document.getElementById("manageStaffBtn");
 
@@ -146,6 +149,7 @@ const managerSignOutBtn =
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
+let managerSignedIn = false;
 
 function showConfirmDialog({title="Warning",message,detail="",confirmText="Confirm",cancelText="Cancel"}) {
   return new Promise((resolve) => {
@@ -486,6 +490,76 @@ const StaffStorage = {
 };
 
 /* =====================================================
+   MANAGER CONTROLS
+   ===================================================== */
+
+function formHasClearableData() {
+  const hasShiftData = [...document.querySelectorAll(".shift-row")].some((row) => {
+    const start = row.querySelector(".start")?.value;
+    const finish = row.querySelector(".finish")?.value;
+    return Boolean(start || finish);
+  });
+
+  const managerNotes =
+    document.getElementById("managerNotes")?.value.trim() || "";
+
+  const managerName =
+    document.getElementById("managerName")?.value.trim() || "";
+
+  return hasShiftData || Boolean(managerNotes || managerName);
+}
+
+function updateClearButtonState() {
+  if (!resetBtn) {
+    return;
+  }
+
+  resetBtn.disabled =
+    !managerSignedIn ||
+    !formHasClearableData();
+
+  resetBtn.title = !managerSignedIn
+    ? "Manager access required"
+    : resetBtn.disabled
+      ? "There is nothing to clear"
+      : "Clear all entries for this week";
+}
+
+function applyManagerControlState() {
+  if (!manageStaffBtn || !resetBtn) {
+    return;
+  }
+
+  if (managerSignedIn) {
+    manageStaffBtn.hidden = false;
+    manageStaffBtn.textContent = "👥 Manage Staff";
+    resetBtn.hidden = false;
+  } else {
+    /*
+      Keep one login entry available. The administrative buttons
+      themselves are hidden until authentication succeeds.
+    */
+    manageStaffBtn.hidden = false;
+    manageStaffBtn.textContent = "🔐 Manager Login";
+    resetBtn.hidden = true;
+  }
+
+  updateClearButtonState();
+}
+
+async function refreshManagerControlState() {
+  try {
+    const session = await getManagerSession();
+    managerSignedIn = Boolean(session);
+  } catch (error) {
+    console.error("Unable to check manager session:", error);
+    managerSignedIn = false;
+  }
+
+  applyManagerControlState();
+}
+
+/* =====================================================
    MODE BADGE
    ===================================================== */
 
@@ -543,7 +617,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.0.2";
+  version.textContent = "Version 2.0.3";
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -773,6 +847,7 @@ function createEmployeeRow(
         () => {
           calculateRow(row);
           calculateTotals();
+          updateClearButtonState();
           scheduleSave();
         }
       );
@@ -1183,6 +1258,8 @@ async function save() {
       false,
       "saved"
     );
+
+    updateClearButtonState();
   } catch (error) {
     console.error(error);
 
@@ -1222,6 +1299,7 @@ function clearForm() {
   ).value = "";
 
   calculateTotals();
+  updateClearButtonState();
 }
 
 /* =====================================================
@@ -1314,6 +1392,7 @@ function applyTimesheetData(data) {
   });
 
   calculateTotals();
+  updateClearButtonState();
 }
 
 /* =====================================================
@@ -1853,6 +1932,9 @@ managerLoginForm.addEventListener("submit", async (event) => {
 
     closeManagerLogin();
 
+    managerSignedIn = true;
+    applyManagerControlState();
+
     const actionToRun = pendingManagerAction;
     pendingManagerAction = null;
 
@@ -1888,6 +1970,8 @@ managerSignOutBtn.addEventListener("click", async () => {
     }
 
     pendingManagerAction = null;
+    managerSignedIn = false;
+    applyManagerControlState();
     closeStaffModal();
     setStatus("Manager signed out", false, "saved");
   } catch (error) {
@@ -1967,7 +2051,10 @@ weekStart.addEventListener(
     .getElementById(id)
     .addEventListener(
       "input",
-      scheduleSave
+      () => {
+        updateClearButtonState();
+        scheduleSave();
+      }
     );
 });
 
@@ -2023,6 +2110,8 @@ async function clearSelectedWeek() {
       false,
       "saved"
     );
+
+    updateClearButtonState();
   } catch (error) {
     console.error(error);
 
@@ -2036,8 +2125,7 @@ async function clearSelectedWeek() {
   }
 }
 
-document
-  .getElementById("resetBtn")
+resetBtn
   .addEventListener(
     "click",
     async () => {
@@ -2144,7 +2232,16 @@ async function initialiseApp() {
   updateWeekEnd();
   setSaveButtonState("saved");
 
+  await refreshManagerControlState();
   await load();
+  updateClearButtonState();
+}
+
+if (!LOCAL_MODE) {
+  db.auth.onAuthStateChange((_event, session) => {
+    managerSignedIn = Boolean(session);
+    applyManagerControlState();
+  });
 }
 
 initialiseApp();
