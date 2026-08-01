@@ -149,7 +149,7 @@ function addModeBadge() {
   badge.id = "storageModeBadge";
   badge.textContent = LOCAL_MODE
     ? "● LOCAL MODE"
-    : "● CLOUD MODE";
+    : "● ONLINE MODE";
 
   badge.style.display = "inline-block";
   badge.style.marginTop = "6px";

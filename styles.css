@@ -32,71 +32,89 @@ textarea {
 .app-shell {
   width: 100%;
   max-width: 620px;
-  margin: 0 auto;
-  background: #fff;
   min-height: 100vh;
+  margin: 0 auto;
   padding: 9px;
+  background: #fff;
 }
 
-/* Updated centred header */
+/* =====================================================
+   HEADER
+   Logo on left.
+   Staff Timesheet on right.
+   Local/cloud mode badge aligned underneath title.
+   ===================================================== */
+
 .brand-header {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  column-gap: 18px;
+  min-height: 132px;
+  padding: 8px 12px 14px;
   border-bottom: 2px solid #111;
-  padding: 10px 0 12px;
-  margin-bottom: 8px;
 }
 
 .brand-logo {
   display: block;
-  width: 110px;
-  max-width: 32vw;
-  height: auto;
-  margin: 0 auto 7px;
-  border-radius: 18px;
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  border-radius: 20px;
 }
 
 .brand-copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  justify-content: center;
   min-width: 0;
+  height: 100%;
 }
 
-.brand-copy p {
+.brand-title {
+  width: 100%;
   margin: 0;
-  font-size: clamp(25px, 7vw, 36px);
-  line-height: 1.05;
-  font-weight: 800;
-  letter-spacing: 0;
+  color: #111;
+  font-size: clamp(27px, 7vw, 42px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.7px;
+  text-align: left;
   text-transform: none;
   white-space: nowrap;
 }
 
-/* Local/cloud mode badge added by app.js */
+/*
+  This badge is created automatically by app.js.
+  It appears under the title and aligns to the right.
+*/
 #storageModeBadge {
-  display: inline-block;
-  margin-top: 7px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  line-height: 1.2;
+  align-self: flex-end;
+  margin-top: 24px !important;
+  margin-right: 0;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
+/* =====================================================
+   WEEK SELECTION
+   Starting and ending dates remain on one line.
+   ===================================================== */
+
 .week-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
+  display: block;
   margin: 9px 0;
-  padding: 8px;
+  padding: 10px 12px 14px;
   background: #f5f5f5;
   border: 1px solid #bbb;
-  border-radius: 7px;
+  border-radius: 12px;
+}
+
+.week-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
 }
 
 label {
@@ -111,13 +129,61 @@ label {
 .manager-card textarea {
   width: 100%;
   min-width: 0;
-  margin-top: 4px;
+  margin-top: 5px;
   padding: 8px;
   border: 1px solid #aaa;
   border-radius: 6px;
   background: #fff;
   font-size: 13px;
 }
+
+.week-card input {
+  min-height: 46px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* =====================================================
+   PREVIOUS AND NEXT WEEK BUTTONS
+   Centred, smaller and positioned below the dates.
+   ===================================================== */
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.week-nav button {
+  width: auto;
+  min-width: 130px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #b5b5b5;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.week-nav button:hover {
+  background: #ededed;
+}
+
+.week-nav button:active {
+  transform: translateY(1px);
+}
+
+/* =====================================================
+   MAIN TOOLBAR
+   ===================================================== */
 
 .toolbar {
   display: grid;
@@ -144,173 +210,8 @@ button.danger {
   border-color: var(--danger);
 }
 
-.status {
-  height: 17px;
-  margin: 3px 0;
-  font-size: 11px;
-  font-weight: 700;
-  color: #28633e;
-}
+/* Save and Clear buttons */
 
-.status.error {
-  color: #a40000;
-  font-weight: 700;
-}
-
-.day-block {
-  margin: 7px 0;
-  border: 1px solid #aaa;
-  border-radius: 7px;
-  overflow: hidden;
-}
-
-.day-block h2 {
-  margin: 0;
-  padding: 5px 8px;
-  background: #111;
-  color: #fff;
-  font-size: 12px;
-  letter-spacing: 0.8px;
-}
-
-.column-headings,
-.shift-row {
-  display: grid;
-  grid-template-columns: 1.12fr 1fr 1fr 0.72fr;
-  gap: 5px;
-  align-items: center;
-}
-
-.column-headings {
-  padding: 4px 6px 2px;
-  background: #eee;
-  color: #555;
-  font-size: 8px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.shift-row {
-  padding: 5px 6px;
-  border-top: 1px solid #ddd;
-}
-
-.shift-row strong {
-  font-size: 11px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.shift-row select {
-  width: 100%;
-  min-width: 0;
-  height: 34px;
-  padding: 2px 1px;
-  border: 1px solid #999;
-  border-radius: 5px;
-  background: #fff;
-  font-size: 11px;
-}
-
-.row-total {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 34px;
-  border: 1px solid #aaa;
-  border-radius: 5px;
-  background: #f1f1f1;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.invalid {
-  background: #fff0f0 !important;
-  border-color: #b00020 !important;
-}
-
-/* Completed shift row */
-.shift-row.completed {
-  background: #d9f4df;
-  border-color: #79b986;
-}
-
-.shift-row.completed .row-total {
-  color: #17652a;
-  font-weight: 800;
-}
-
-.summary-card {
-  margin-top: 9px;
-  border: 2px solid #111;
-  border-radius: 7px;
-  overflow: hidden;
-}
-
-.summary-card > div {
-  display: flex;
-  justify-content: space-between;
-  padding: 7px 9px;
-  border-bottom: 1px solid #ccc;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.summary-card > div:last-child {
-  border-bottom: 0;
-}
-
-.summary-card .grand {
-  background: #111;
-  color: #fff;
-  font-size: 14px;
-}
-
-.manager-card {
-  margin-top: 9px;
-  padding: 8px;
-  border: 1px solid #aaa;
-  border-radius: 7px;
-}
-
-.manager-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-top: 7px;
-}
-
-/* Previous and next week navigation */
-.week-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.week-nav {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.week-nav button {
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid #c9c9c9;
-  border-radius: 10px;
-  background: #fff;
-  color: #111;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.week-nav button:hover {
-  background: #f2f2f2;
-}
-
-/* Polished Save and Clear buttons */
 .toolbar .save-btn,
 .toolbar .clear-btn {
   color: #fff;
@@ -365,13 +266,16 @@ button.danger {
   color: #fff;
 }
 
-/* Save-status indicator */
+/* =====================================================
+   SAVE STATUS INDICATOR
+   ===================================================== */
+
 .status-indicator {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   min-height: 28px;
-  margin: 5px 0 7px;
+  margin: 7px 0;
   padding: 5px 9px;
   border: 1px solid #c8c8c8;
   border-radius: 999px;
@@ -447,40 +351,202 @@ button.danger {
   }
 }
 
-@media (max-width: 600px) {
-  .week-fields {
-    grid-template-columns: 1fr;
-  }
+/* =====================================================
+   DAY AND SHIFT SECTIONS
+   ===================================================== */
+
+.day-block {
+  margin: 7px 0;
+  border: 1px solid #aaa;
+  border-radius: 7px;
+  overflow: hidden;
 }
 
-@media (max-width: 380px) {
+.day-block h2 {
+  margin: 0;
+  padding: 5px 8px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+}
+
+.column-headings,
+.shift-row {
+  display: grid;
+  grid-template-columns: 1.12fr 1fr 1fr 0.72fr;
+  gap: 5px;
+  align-items: center;
+}
+
+.column-headings {
+  padding: 4px 6px 2px;
+  background: #eee;
+  color: #555;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.shift-row {
+  padding: 5px 6px;
+  border-top: 1px solid #ddd;
+}
+
+.shift-row strong {
+  overflow: hidden;
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shift-row select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 2px 1px;
+  border: 1px solid #999;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 11px;
+}
+
+.row-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  background: #f1f1f1;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.invalid {
+  background: #fff0f0 !important;
+  border-color: #b00020 !important;
+}
+
+/* Completed shift row */
+
+.shift-row.completed {
+  background: #d9f4df;
+  border-color: #79b986;
+}
+
+.shift-row.completed .row-total {
+  color: #17652a;
+  font-weight: 800;
+}
+
+/* =====================================================
+   SUMMARY
+   ===================================================== */
+
+.summary-card {
+  margin-top: 9px;
+  border: 2px solid #111;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.summary-card > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 9px;
+  border-bottom: 1px solid #ccc;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.summary-card > div:last-child {
+  border-bottom: 0;
+}
+
+.summary-card .grand {
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* =====================================================
+   MANAGER SECTION
+   ===================================================== */
+
+.manager-card {
+  margin-top: 9px;
+  padding: 8px;
+  border: 1px solid #aaa;
+  border-radius: 7px;
+}
+
+.manager-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+/* =====================================================
+   SMALL PHONE SCREENS
+   ===================================================== */
+
+@media (max-width: 460px) {
+
   .app-shell {
-    padding: 6px;
+    padding: 7px;
   }
 
   .brand-header {
-    padding: 8px 0 10px;
+    grid-template-columns: 92px minmax(0, 1fr);
+    column-gap: 12px;
+    min-height: 110px;
+    padding: 7px 7px 11px;
   }
 
   .brand-logo {
     width: 92px;
-    max-width: 30vw;
-    margin-bottom: 6px;
-    border-radius: 15px;
+    height: 92px;
+    border-radius: 17px;
   }
 
-  .brand-copy p {
-    font-size: 27px;
+  .brand-title {
+    font-size: clamp(25px, 7.4vw, 33px);
+    letter-spacing: -0.5px;
   }
 
   #storageModeBadge {
-    margin-top: 6px;
-    font-size: 10px;
-    padding: 4px 9px;
+    margin-top: 18px !important;
+    font-size: 10px !important;
+    padding: 4px 9px !important;
   }
 
   .week-card {
-    grid-template-columns: 1fr 1fr;
+    padding: 9px;
+  }
+
+  .week-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .week-card input {
+    min-height: 43px;
+    padding: 7px 6px;
+    font-size: 13px;
+  }
+
+  .week-nav {
+    gap: 7px;
+    margin-top: 10px;
+  }
+
+  .week-nav button {
+    min-width: 112px;
+    min-height: 34px;
+    padding: 6px 9px;
+    font-size: 10px;
   }
 
   .column-headings,
@@ -494,8 +560,8 @@ button.danger {
   }
 
   .shift-row select {
-    font-size: 10px;
     padding: 1px 0;
+    font-size: 10px;
   }
 
   .shift-row strong {
@@ -507,7 +573,44 @@ button.danger {
   }
 }
 
+/* Extra-small screens */
+
+@media (max-width: 350px) {
+
+  .brand-header {
+    grid-template-columns: 78px minmax(0, 1fr);
+    column-gap: 9px;
+  }
+
+  .brand-logo {
+    width: 78px;
+    height: 78px;
+    border-radius: 14px;
+  }
+
+  .brand-title {
+    font-size: 24px;
+  }
+
+  #storageModeBadge {
+    margin-top: 14px !important;
+    font-size: 9px !important;
+  }
+
+  .week-nav button {
+    min-width: 104px;
+    padding-right: 6px;
+    padding-left: 6px;
+    font-size: 9px;
+  }
+}
+
+/* =====================================================
+   PRINT
+   ===================================================== */
+
 @media print {
+
   body {
     background: #fff;
   }
@@ -522,18 +625,19 @@ button.danger {
   }
 
   .brand-header {
-    padding: 3px 0 5px;
-    margin-bottom: 4px;
+    grid-template-columns: 65px minmax(0, 1fr);
+    min-height: 70px;
+    padding: 2px 5px 5px;
   }
 
   .brand-logo {
     width: 62px;
-    margin-bottom: 3px;
+    height: 62px;
     border-radius: 10px;
   }
 
-  .brand-copy p {
-    font-size: 22px;
+  .brand-title {
+    font-size: 24px;
   }
 
   #storageModeBadge {
@@ -543,6 +647,10 @@ button.danger {
   .week-card {
     margin: 5px 0;
     padding: 5px;
+  }
+
+  .week-nav {
+    display: none !important;
   }
 
   .day-block {
