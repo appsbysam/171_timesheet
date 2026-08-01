@@ -1017,3 +1017,152 @@ body.staff-modal-open {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   MANAGER LOGIN
+   ===================================================== */
+
+.manager-login-modal[hidden] {
+  display: none !important;
+}
+
+.manager-login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.manager-login-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.manager-login-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+
+.manager-login-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.manager-login-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.manager-login-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.manager-login-close {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #eee;
+  color: #222;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.manager-login-form {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.manager-login-form label {
+  margin-top: 4px;
+}
+
+.manager-login-form input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.manager-login-form button {
+  margin-top: 7px;
+  padding: 11px 14px;
+  border-color: #147a35;
+  background: #169444;
+  color: #fff;
+  cursor: pointer;
+}
+
+.manager-login-form button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.manager-login-message {
+  min-height: 18px;
+  margin: 10px 2px 0;
+  color: #246537;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manager-login-message.error {
+  color: #a40000;
+}
+
+.staff-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manager-sign-out-btn {
+  padding: 7px 9px;
+  border-color: #6b7280;
+  color: #374151;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 460px) {
+  .manager-login-dialog {
+    padding: 15px;
+  }
+
+  .staff-modal-header-actions {
+    align-items: flex-start;
+  }
+
+  .manager-sign-out-btn {
+    padding: 6px 7px;
+    font-size: 9px;
+  }
+}
+
+@media print {
+  .manager-login-modal {
+    display: none !important;
+  }
+}

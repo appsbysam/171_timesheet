@@ -110,6 +110,30 @@ const inactiveStaffCount =
 const staffManagerMessage =
   document.getElementById("staffManagerMessage");
 
+const managerLoginModal =
+  document.getElementById("managerLoginModal");
+
+const closeManagerLoginBtn =
+  document.getElementById("closeManagerLoginBtn");
+
+const managerLoginForm =
+  document.getElementById("managerLoginForm");
+
+const managerLoginEmail =
+  document.getElementById("managerLoginEmail");
+
+const managerLoginPassword =
+  document.getElementById("managerLoginPassword");
+
+const managerLoginSubmitBtn =
+  document.getElementById("managerLoginSubmitBtn");
+
+const managerLoginMessage =
+  document.getElementById("managerLoginMessage");
+
+const managerSignOutBtn =
+  document.getElementById("managerSignOutBtn");
+
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
@@ -1463,6 +1487,51 @@ function createStaffManagerRow(member, index) {
   return row;
 }
 
+function setManagerLoginMessage(message, isError = false) {
+  managerLoginMessage.textContent = message;
+  managerLoginMessage.classList.toggle("error", isError);
+}
+
+function openManagerLogin() {
+  setManagerLoginMessage("");
+  managerLoginPassword.value = "";
+  managerLoginModal.hidden = false;
+  document.body.classList.add("staff-modal-open");
+  setTimeout(() => managerLoginEmail.focus(), 0);
+}
+
+function closeManagerLogin() {
+  managerLoginModal.hidden = true;
+  if (staffModal.hidden) {
+    document.body.classList.remove("staff-modal-open");
+  }
+}
+
+async function getManagerSession() {
+  if (LOCAL_MODE) {
+    return { local: true };
+  }
+
+  const { data, error } = await db.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session;
+}
+
+async function requireManagerSession() {
+  const session = await getManagerSession();
+
+  if (session) {
+    return true;
+  }
+
+  openManagerLogin();
+  return false;
+}
+
 async function renderStaffManager() {
   activeStaffList.innerHTML = "";
   inactiveStaffList.innerHTML = "";
@@ -1501,7 +1570,7 @@ async function refreshStaffAfterChange() {
   await load();
 }
 
-async function openStaffModal() {
+async function showStaffModal() {
   setStaffManagerMessage("");
   staffModal.hidden = false;
   document.body.classList.add("staff-modal-open");
@@ -1515,6 +1584,22 @@ async function openStaffModal() {
   }
 }
 
+async function openStaffModal() {
+  try {
+    const allowed = await requireManagerSession();
+
+    if (!allowed) {
+      return;
+    }
+
+    await showStaffModal();
+  } catch (error) {
+    console.error(error);
+    openManagerLogin();
+    setManagerLoginMessage(error.message, true);
+  }
+}
+
 function closeStaffModal() {
   staffModal.hidden = true;
   document.body.classList.remove("staff-modal-open");
@@ -1522,6 +1607,73 @@ function closeStaffModal() {
 
 manageStaffBtn.addEventListener("click", openStaffModal);
 closeStaffModalBtn.addEventListener("click", closeStaffModal);
+closeManagerLoginBtn.addEventListener("click", closeManagerLogin);
+
+managerLoginModal
+  .querySelectorAll("[data-close-manager-login]")
+  .forEach((element) => {
+    element.addEventListener("click", closeManagerLogin);
+  });
+
+managerLoginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const email = managerLoginEmail.value.trim();
+  const password = managerLoginPassword.value;
+
+  if (!email || !password) {
+    setManagerLoginMessage("Enter your email and password.", true);
+    return;
+  }
+
+  try {
+    managerLoginSubmitBtn.disabled = true;
+    managerLoginSubmitBtn.textContent = "Signing In…";
+    setManagerLoginMessage("Signing in…");
+
+    const { error } = await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    closeManagerLogin();
+    await showStaffModal();
+  } catch (error) {
+    console.error(error);
+    setManagerLoginMessage(
+      error.message || "Unable to sign in.",
+      true
+    );
+  } finally {
+    managerLoginSubmitBtn.disabled = false;
+    managerLoginSubmitBtn.textContent = "Sign In";
+  }
+});
+
+managerSignOutBtn.addEventListener("click", async () => {
+  if (LOCAL_MODE) {
+    closeStaffModal();
+    return;
+  }
+
+  try {
+    const { error } = await db.auth.signOut();
+
+    if (error) {
+      throw error;
+    }
+
+    closeStaffModal();
+    setStatus("Manager signed out", false, "saved");
+  } catch (error) {
+    console.error(error);
+    setStaffManagerMessage(error.message, true);
+  }
+});
 
 staffModal
   .querySelectorAll("[data-close-staff-modal]")
@@ -1530,7 +1682,16 @@ staffModal
   });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !staffModal.hidden) {
+  if (event.key !== "Escape") {
+    return;
+  }
+
+  if (!managerLoginModal.hidden) {
+    closeManagerLogin();
+    return;
+  }
+
+  if (!staffModal.hidden) {
     closeStaffModal();
   }
 });

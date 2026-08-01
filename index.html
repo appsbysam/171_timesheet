@@ -202,6 +202,67 @@
     </section>
 
 
+
+    <div
+      id="managerLoginModal"
+      class="manager-login-modal no-print"
+      hidden
+    >
+      <div
+        class="manager-login-backdrop"
+        data-close-manager-login
+      ></div>
+
+      <section
+        class="manager-login-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="managerLoginTitle"
+      >
+        <div class="manager-login-header">
+          <div>
+            <h2 id="managerLoginTitle">Manager Sign In</h2>
+            <p>Sign in to manage staff members.</p>
+          </div>
+
+          <button
+            id="closeManagerLoginBtn"
+            class="manager-login-close"
+            type="button"
+            aria-label="Close manager sign in"
+          >
+            ×
+          </button>
+        </div>
+
+        <form id="managerLoginForm" class="manager-login-form">
+          <label for="managerLoginEmail">Email</label>
+          <input
+            id="managerLoginEmail"
+            type="email"
+            autocomplete="username"
+            required
+          />
+
+          <label for="managerLoginPassword">Password</label>
+          <input
+            id="managerLoginPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+
+          <button id="managerLoginSubmitBtn" type="submit">Sign In</button>
+        </form>
+
+        <p
+          id="managerLoginMessage"
+          class="manager-login-message"
+          aria-live="polite"
+        ></p>
+      </section>
+    </div>
+
     <div
       id="staffModal"
       class="staff-modal no-print"
@@ -224,14 +285,24 @@
             <p>Add, rename, deactivate or reactivate staff.</p>
           </div>
 
-          <button
-            id="closeStaffModalBtn"
-            class="staff-modal-close"
-            type="button"
-            aria-label="Close staff management"
-          >
-            ×
-          </button>
+          <div class="staff-modal-header-actions">
+            <button
+              id="managerSignOutBtn"
+              class="manager-sign-out-btn"
+              type="button"
+            >
+              Sign Out
+            </button>
+
+            <button
+              id="closeStaffModalBtn"
+              class="staff-modal-close"
+              type="button"
+              aria-label="Close staff management"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <form id="addStaffForm" class="add-staff-form">
@@ -329,6 +400,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="app.js?v=phase2-2"></script>
+  <script src="app.js?v=manager-auth-1"></script>
 </body>
 </html>
