@@ -84,23 +84,14 @@ textarea {
   text-transform: none;
   white-space: nowrap;
 }
-.header-status {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  margin-left: auto;
-}
-
 .app-version {
-  font-size: 11px;
-  color: #999;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  line-height: 1;
-  text-align: right;
-  margin-top: 0;
-  margin-bottom: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
 }
 /*
   This badge is created automatically by app.js.
@@ -1389,3 +1380,120 @@ body.staff-modal-open {
 .app-confirm-accept:hover{background:#ad1d1d}
 @media(max-width:420px){.app-confirm-actions{display:grid;grid-template-columns:1fr 1fr}.app-confirm-actions button{min-width:0}}
 @media print{.app-confirm-modal{display:none!important}}
+
+
+/* =====================================================
+   MANAGER MODE MENU
+   ===================================================== */
+
+.manager-menu-modal[hidden] {
+  display: none !important;
+}
+
+.manager-menu-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1150;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.manager-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(2px);
+}
+
+.manager-menu-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  padding: 18px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+}
+
+.manager-menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.manager-menu-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.manager-menu-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.manager-menu-close {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #eee;
+  color: #222;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.manager-menu-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.manager-menu-actions button {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+
+.manager-menu-actions .manager-menu-clear {
+  border-color: #d32626;
+  background: #d32626;
+  color: #fff;
+}
+
+.manager-menu-actions .manager-menu-clear:disabled {
+  border-color: #aaa;
+  background: #b8b8b8;
+  color: #eee;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.manager-menu-actions .manager-menu-sign-out {
+  border-color: #6b7280;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.clear-btn:disabled {
+  border-color: #aaa !important;
+  background: #b8b8b8 !important;
+  color: #eee !important;
+  cursor: not-allowed !important;
+  opacity: 0.72 !important;
+  transform: none !important;
+}
+
+@media print {
+  .manager-menu-modal {
+    display: none !important;
+  }
+}

@@ -122,6 +122,24 @@ const staffOperationStatusText =
 const staffToastRegion =
   document.getElementById("staffToastRegion");
 
+const managerCard =
+  document.getElementById("managerCard");
+
+const managerMenuModal =
+  document.getElementById("managerMenuModal");
+
+const closeManagerMenuBtn =
+  document.getElementById("closeManagerMenuBtn");
+
+const managerMenuStaffBtn =
+  document.getElementById("managerMenuStaffBtn");
+
+const managerMenuClearBtn =
+  document.getElementById("managerMenuClearBtn");
+
+const managerMenuSignOutBtn =
+  document.getElementById("managerMenuSignOutBtn");
+
 const managerLoginModal =
   document.getElementById("managerLoginModal");
 
@@ -523,25 +541,29 @@ function updateClearButtonState() {
     : resetBtn.disabled
       ? "There is nothing to clear"
       : "Clear all entries for this week";
+
+  if (managerMenuClearBtn) {
+    managerMenuClearBtn.disabled = resetBtn.disabled;
+    managerMenuClearBtn.title = resetBtn.title;
+  }
 }
 
 function applyManagerControlState() {
-  if (!manageStaffBtn || !resetBtn) {
+  if (!manageStaffBtn || !resetBtn || !managerCard) {
     return;
   }
 
   if (managerSignedIn) {
     manageStaffBtn.hidden = false;
-    manageStaffBtn.textContent = "👥 Manage Staff";
-    resetBtn.hidden = false;
-  } else {
-    /*
-      Keep one login entry available. The administrative buttons
-      themselves are hidden until authentication succeeds.
-    */
-    manageStaffBtn.hidden = false;
-    manageStaffBtn.textContent = "🔐 Manager Login";
+    manageStaffBtn.textContent = "👤 Manager Mode";
     resetBtn.hidden = true;
+    managerCard.hidden = false;
+  } else {
+    manageStaffBtn.hidden = false;
+    manageStaffBtn.textContent = "🔐 Manager Mode";
+    resetBtn.hidden = true;
+    managerCard.hidden = true;
+    closeManagerMenu();
   }
 
   updateClearButtonState();
@@ -617,7 +639,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.0.3";
+  version.textContent = "Version 2.1.0";
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -1260,6 +1282,7 @@ async function save() {
     );
 
     updateClearButtonState();
+    closeManagerMenu();
   } catch (error) {
     console.error(error);
 
@@ -1868,6 +1891,29 @@ async function showStaffModal() {
   }
 }
 
+function openManagerMenu() {
+  if (!managerSignedIn) {
+    openManagerLogin();
+    return;
+  }
+
+  updateClearButtonState();
+  managerMenuModal.hidden = false;
+  document.body.classList.add("staff-modal-open");
+}
+
+function closeManagerMenu() {
+  if (!managerMenuModal) {
+    return;
+  }
+
+  managerMenuModal.hidden = true;
+
+  if (staffModal.hidden && managerLoginModal.hidden) {
+    document.body.classList.remove("staff-modal-open");
+  }
+}
+
 async function openStaffModal() {
   try {
     const allowed = await requireManagerSession();
@@ -1889,7 +1935,29 @@ function closeStaffModal() {
   document.body.classList.remove("staff-modal-open");
 }
 
-manageStaffBtn.addEventListener("click", openStaffModal);
+manageStaffBtn.addEventListener("click", openManagerMenu);
+closeManagerMenuBtn.addEventListener("click", closeManagerMenu);
+
+managerMenuModal
+  .querySelectorAll("[data-close-manager-menu]")
+  .forEach((element) => {
+    element.addEventListener("click", closeManagerMenu);
+  });
+
+managerMenuStaffBtn.addEventListener("click", async () => {
+  closeManagerMenu();
+  await showStaffModal();
+});
+
+managerMenuClearBtn.addEventListener("click", async () => {
+  if (managerMenuClearBtn.disabled) {
+    return;
+  }
+
+  closeManagerMenu();
+  await clearSelectedWeek();
+});
+
 closeStaffModalBtn.addEventListener("click", closeStaffModal);
 closeManagerLoginBtn.addEventListener("click", () => {
   pendingManagerAction = null;
@@ -1941,7 +2009,7 @@ managerLoginForm.addEventListener("submit", async (event) => {
     if (actionToRun) {
       await actionToRun();
     } else {
-      await showStaffModal();
+      openManagerMenu();
     }
   } catch (error) {
     console.error(error);
@@ -1955,14 +2023,20 @@ managerLoginForm.addEventListener("submit", async (event) => {
   }
 });
 
-managerSignOutBtn.addEventListener("click", async () => {
+async function signOutManager() {
   if (LOCAL_MODE) {
+    managerSignedIn = false;
+    applyManagerControlState();
     closeStaffModal();
+    closeManagerMenu();
     return;
   }
 
   try {
-    setStaffOperationStatus("loading", "Signing out…");
+    if (!staffModal.hidden) {
+      setStaffOperationStatus("loading", "Signing out…");
+    }
+
     const { error } = await db.auth.signOut();
 
     if (error) {
@@ -1973,12 +2047,25 @@ managerSignOutBtn.addEventListener("click", async () => {
     managerSignedIn = false;
     applyManagerControlState();
     closeStaffModal();
+    closeManagerMenu();
     setStatus("Manager signed out", false, "saved");
   } catch (error) {
     console.error(error);
-    setStaffManagerMessage(error.message, true);
+
+    if (!staffModal.hidden) {
+      setStaffManagerMessage(error.message, true);
+    } else {
+      setStatus(
+        `Unable to sign out: ${error.message}`,
+        true,
+        "error"
+      );
+    }
   }
-});
+}
+
+managerSignOutBtn.addEventListener("click", signOutManager);
+managerMenuSignOutBtn.addEventListener("click", signOutManager);
 
 staffModal
   .querySelectorAll("[data-close-staff-modal]")
@@ -1999,6 +2086,11 @@ document.addEventListener("keydown", (event) => {
 
   if (!staffModal.hidden) {
     closeStaffModal();
+    return;
+  }
+
+  if (!managerMenuModal.hidden) {
+    closeManagerMenu();
   }
 });
 

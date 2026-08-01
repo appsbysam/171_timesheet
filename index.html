@@ -38,7 +38,7 @@
     href="apple-touch-icon.png"
   />
 
-  <link rel="stylesheet" href="styles.css?v=2.0.3" />
+  <link rel="stylesheet" href="styles.css?v=2.1.0" />
 </head>
 
 <body>
@@ -163,7 +163,7 @@
 
     </section>
 
-    <section class="manager-card">
+    <section id="managerCard" class="manager-card" hidden>
 
       <label>
         Manager notes
@@ -199,6 +199,63 @@
     </section>
 
 
+
+
+    <div
+      id="managerMenuModal"
+      class="manager-menu-modal no-print"
+      hidden
+    >
+      <div
+        class="manager-menu-backdrop"
+        data-close-manager-menu
+      ></div>
+
+      <section
+        class="manager-menu-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="managerMenuTitle"
+      >
+        <div class="manager-menu-header">
+          <div>
+            <h2 id="managerMenuTitle">Manager Mode</h2>
+            <p>Choose an administrative action.</p>
+          </div>
+
+          <button
+            id="closeManagerMenuBtn"
+            class="manager-menu-close"
+            type="button"
+            aria-label="Close manager menu"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="manager-menu-actions">
+          <button id="managerMenuStaffBtn" type="button">
+            👥 Manage Staff
+          </button>
+
+          <button
+            id="managerMenuClearBtn"
+            class="manager-menu-clear"
+            type="button"
+          >
+            Clear Week
+          </button>
+
+          <button
+            id="managerMenuSignOutBtn"
+            class="manager-menu-sign-out"
+            type="button"
+          >
+            Sign Out
+          </button>
+        </div>
+      </section>
+    </div>
 
     <div
       id="managerLoginModal"
@@ -414,6 +471,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="app.js?v=2.0.3"></script>
+  <script src="app.js?v=2.1.0"></script>
 </body>
 </html>

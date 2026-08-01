@@ -1,0 +1,38 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.1.0
+Release Date: 2 August 2026
+====================================================
+
+NEW FEATURES
+------------
+• Added a dedicated Manager Mode menu.
+• Manager Mode now provides access to:
+  - Manage Staff
+  - Clear Week
+  - Sign Out
+• The Manager Notes section is now visible only while a manager is signed in.
+
+IMPROVEMENTS
+------------
+• The toolbar now shows "Manager Mode" instead of exposing separate administrative actions.
+• When logged out, the Manager Mode button opens the manager sign-in screen.
+• When logged in, the Manager Mode button opens the administrative menu.
+• The Clear Week action is disabled when the selected week has no entries or manager information to clear.
+• Manager-only areas automatically hide again after sign-out.
+• Updated cache-busting references for version 2.1.0.
+
+SECURITY AND ACCESS
+-------------------
+• Clear Week remains protected by manager authentication.
+• Manage Staff remains protected by manager authentication.
+• Manager Notes, Manager Name and Manager Date are now manager-only.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• CHANGELOG-v2.1.0.txt
+
+====================================================
