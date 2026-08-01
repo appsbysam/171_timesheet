@@ -639,7 +639,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.1.0";
+  version.textContent = "Version 2.1.1";
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);

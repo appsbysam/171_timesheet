@@ -1,0 +1,22 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.1.1
+Release Date: 2 August 2026
+====================================================
+
+BUG FIXES
+---------
+• Fixed the alignment of the ONLINE/LOCAL MODE badge.
+• Fixed the alignment of the version number underneath the mode badge.
+• Restored right alignment beneath the Staff Timesheet heading.
+• Removed the unwanted horizontal separation between the badge and version text.
+• Added responsive spacing for smaller phone screens.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• CHANGELOG-v2.1.1.txt
+
+====================================================
