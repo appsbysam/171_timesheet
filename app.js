@@ -1719,6 +1719,13 @@ async function renderStaffManager({ showLoading = true } = {}) {
   const active = allStaff.filter((member) => member.active !== false);
   const inactive = allStaff.filter((member) => member.active === false);
 
+  /*
+    Remove the temporary loading placeholders before rendering
+    the actual staff rows.
+  */
+  activeStaffList.innerHTML = "";
+  inactiveStaffList.innerHTML = "";
+
   if (!active.length) {
     activeStaffList.innerHTML =
       '<div class="staff-list-empty">No active staff members.</div>';
@@ -1743,9 +1750,7 @@ async function renderStaffManager({ showLoading = true } = {}) {
     });
   }
 
-  if (showLoading) {
-    setStaffOperationStatus("ready", "Ready");
-  }
+  setStaffOperationStatus("ready", "Ready");
 }
 
 async function refreshStaffAfterChange() {
