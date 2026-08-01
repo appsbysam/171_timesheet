@@ -131,6 +131,14 @@
         Clear
       </button>
 
+      <button
+        id="manageStaffBtn"
+        class="manage-staff-btn"
+        type="button"
+      >
+        👥 Manage Staff
+      </button>
+
     </section>
 
     <div
@@ -192,6 +200,78 @@
       </div>
 
     </section>
+
+
+    <div
+      id="staffModal"
+      class="staff-modal no-print"
+      hidden
+    >
+      <div
+        class="staff-modal-backdrop"
+        data-close-staff-modal
+      ></div>
+
+      <section
+        class="staff-modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="staffModalTitle"
+      >
+        <div class="staff-modal-header">
+          <div>
+            <h2 id="staffModalTitle">Manage Staff</h2>
+            <p>Add, rename, deactivate or reactivate staff.</p>
+          </div>
+
+          <button
+            id="closeStaffModalBtn"
+            class="staff-modal-close"
+            type="button"
+            aria-label="Close staff management"
+          >
+            ×
+          </button>
+        </div>
+
+        <form id="addStaffForm" class="add-staff-form">
+          <label for="newStaffName">New staff member</label>
+
+          <div class="add-staff-row">
+            <input
+              id="newStaffName"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+              placeholder="Enter staff name"
+              required
+            />
+
+            <button type="submit">Add Staff</button>
+          </div>
+        </form>
+
+        <p
+          id="staffManagerMessage"
+          class="staff-manager-message"
+          aria-live="polite"
+        ></p>
+
+        <div class="staff-list-section">
+          <h3>Active staff</h3>
+          <div id="activeStaffList" class="staff-list"></div>
+        </div>
+
+        <details class="inactive-staff-section">
+          <summary>
+            Inactive staff
+            <span id="inactiveStaffCount">0</span>
+          </summary>
+
+          <div id="inactiveStaffList" class="staff-list"></div>
+        </details>
+      </section>
+    </div>
 
   </main>
 

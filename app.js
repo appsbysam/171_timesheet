@@ -42,12 +42,14 @@ const DEFAULT_LOCAL_STAFF = [
   {
     id: "local-mikayla",
     name: "Mikayla",
-    active: true
+    active: true,
+    display_order: 1
   },
   {
     id: "local-monique",
     name: "Monique",
-    active: true
+    active: true,
+    display_order: 2
   }
 ];
 
@@ -81,6 +83,33 @@ const statusIndicator =
 const saveBtn =
   document.getElementById("saveBtn");
 
+const manageStaffBtn =
+  document.getElementById("manageStaffBtn");
+
+const staffModal =
+  document.getElementById("staffModal");
+
+const closeStaffModalBtn =
+  document.getElementById("closeStaffModalBtn");
+
+const addStaffForm =
+  document.getElementById("addStaffForm");
+
+const newStaffName =
+  document.getElementById("newStaffName");
+
+const activeStaffList =
+  document.getElementById("activeStaffList");
+
+const inactiveStaffList =
+  document.getElementById("inactiveStaffList");
+
+const inactiveStaffCount =
+  document.getElementById("inactiveStaffCount");
+
+const staffManagerMessage =
+  document.getElementById("staffManagerMessage");
+
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
@@ -101,16 +130,61 @@ function staffStorageKey() {
    TIMESHEET STORAGE
    ===================================================== */
 
+
+function sortStaffMembers(staff) {
+  return [...staff].sort((a, b) => {
+    const orderA = Number(a.display_order ?? 999);
+    const orderB = Number(b.display_order ?? 999);
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    return String(a.name).localeCompare(String(b.name));
+  });
+}
+
 const TimesheetStorage = {
   async save(week, rows) {
+    const activeNames = new Set(staffMembers.map((member) => member.name));
+
     if (LOCAL_MODE) {
+      let existingRows = [];
+      const saved = localStorage.getItem(timesheetStorageKey(week));
+
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          existingRows = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          existingRows = [];
+        }
+      }
+
+      const inactiveRows = existingRows.filter(
+        (row) => !activeNames.has(row.employee)
+      );
+
       localStorage.setItem(
         timesheetStorageKey(week),
-        JSON.stringify(rows)
+        JSON.stringify([...inactiveRows, ...rows])
       );
 
       return;
     }
+
+    const { data: existingRows, error: loadError } = await db
+      .from("timesheets")
+      .select("*")
+      .eq("week_start", week);
+
+    if (loadError) {
+      throw loadError;
+    }
+
+    const inactiveRows = (existingRows || [])
+      .filter((row) => !activeNames.has(row.employee))
+      .map(({ id, created_at, ...row }) => row);
 
     const { error: deleteError } = await db
       .from("timesheets")
@@ -121,13 +195,15 @@ const TimesheetStorage = {
       throw deleteError;
     }
 
-    if (!rows.length) {
+    const rowsToInsert = [...inactiveRows, ...rows];
+
+    if (!rowsToInsert.length) {
       return;
     }
 
     const { error: insertError } = await db
       .from("timesheets")
-      .insert(rows);
+      .insert(rowsToInsert);
 
     if (insertError) {
       throw insertError;
@@ -198,12 +274,9 @@ const TimesheetStorage = {
    ===================================================== */
 
 const StaffStorage = {
-  async loadActive() {
+  async loadAll() {
     if (LOCAL_MODE) {
-      const saved =
-        localStorage.getItem(
-          staffStorageKey()
-        );
+      const saved = localStorage.getItem(staffStorageKey());
 
       if (!saved) {
         localStorage.setItem(
@@ -211,42 +284,147 @@ const StaffStorage = {
           JSON.stringify(DEFAULT_LOCAL_STAFF)
         );
 
-        return [...DEFAULT_LOCAL_STAFF];
+        return sortStaffMembers(DEFAULT_LOCAL_STAFF);
       }
 
       try {
         const parsed = JSON.parse(saved);
 
-        if (!Array.isArray(parsed)) {
-          return [...DEFAULT_LOCAL_STAFF];
-        }
-
-        return parsed.filter(
-          (member) => member.active !== false
+        return sortStaffMembers(
+          Array.isArray(parsed) ? parsed : DEFAULT_LOCAL_STAFF
         );
       } catch (error) {
-        console.error(
-          "Unable to read the local staff list:",
-          error
-        );
-
-        return [...DEFAULT_LOCAL_STAFF];
+        console.error("Unable to read the local staff list:", error);
+        return sortStaffMembers(DEFAULT_LOCAL_STAFF);
       }
     }
 
     const { data, error } = await db
       .from("staff_members")
-      .select("id, name, active, created_at")
-      .eq("active", true)
-      .order("created_at", {
-        ascending: true
-      });
+      .select("id, name, active, created_at, display_order")
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: true });
 
     if (error) {
       throw error;
     }
 
-    return data || [];
+    return sortStaffMembers(data || []);
+  },
+
+  async loadActive() {
+    const allStaff = await this.loadAll();
+    return allStaff.filter((member) => member.active !== false);
+  },
+
+  async add(name) {
+    const cleanedName = name.trim();
+    const allStaff = await this.loadAll();
+
+    if (
+      allStaff.some(
+        (member) =>
+          member.name.trim().toLowerCase() === cleanedName.toLowerCase()
+      )
+    ) {
+      throw new Error("A staff member with that name already exists.");
+    }
+
+    const nextOrder =
+      allStaff.reduce(
+        (highest, member) =>
+          Math.max(highest, Number(member.display_order || 0)),
+        0
+      ) + 1;
+
+    if (LOCAL_MODE) {
+      const member = {
+        id: `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        name: cleanedName,
+        active: true,
+        display_order: nextOrder,
+        created_at: new Date().toISOString()
+      };
+
+      allStaff.push(member);
+      localStorage.setItem(staffStorageKey(), JSON.stringify(allStaff));
+      return member;
+    }
+
+    const { data, error } = await db
+      .from("staff_members")
+      .insert({
+        name: cleanedName,
+        active: true,
+        display_order: nextOrder
+      })
+      .select("id, name, active, created_at, display_order")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  },
+
+  async rename(id, name) {
+    const cleanedName = name.trim();
+    const allStaff = await this.loadAll();
+
+    if (
+      allStaff.some(
+        (member) =>
+          String(member.id) !== String(id) &&
+          member.name.trim().toLowerCase() === cleanedName.toLowerCase()
+      )
+    ) {
+      throw new Error("A staff member with that name already exists.");
+    }
+
+    if (LOCAL_MODE) {
+      const updated = allStaff.map((member) =>
+        String(member.id) === String(id)
+          ? { ...member, name: cleanedName }
+          : member
+      );
+
+      localStorage.setItem(staffStorageKey(), JSON.stringify(updated));
+      return;
+    }
+
+    const { error } = await db
+      .from("staff_members")
+      .update({ name: cleanedName })
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+  },
+
+  async setActive(id, active) {
+    const allStaff = await this.loadAll();
+
+    if (LOCAL_MODE) {
+      const updated = allStaff.map((member) =>
+        String(member.id) === String(id)
+          ? { ...member, active }
+          : member
+      );
+
+      localStorage.setItem(staffStorageKey(), JSON.stringify(updated));
+      return;
+    }
+
+    const { error } = await db
+      .from("staff_members")
+      .update({ active })
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
   }
 };
 
@@ -627,6 +805,7 @@ function buildEmployeeTotals() {
 }
 
 function rebuildStaffInterface() {
+  staffMembers = sortStaffMembers(staffMembers);
   buildTimesheet();
   buildEmployeeTotals();
   calculateTotals();
@@ -1154,6 +1333,228 @@ async function load() {
     isLoading = false;
   }
 }
+
+
+/* =====================================================
+   STAFF MANAGEMENT
+   ===================================================== */
+
+function setStaffManagerMessage(message, isError = false) {
+  staffManagerMessage.textContent = message;
+  staffManagerMessage.classList.toggle("error", isError);
+}
+
+function createStaffManagerRow(member, index) {
+  const row = document.createElement("div");
+  row.className = "staff-manage-row";
+  row.dataset.staffId = member.id;
+
+  const order = document.createElement("span");
+  order.className = "staff-order-number";
+  order.textContent = String(index + 1);
+
+  const name = document.createElement("div");
+  name.className = "staff-manage-name";
+  name.textContent = member.name;
+
+  const actions = document.createElement("div");
+  actions.className = "staff-row-actions";
+
+  if (member.active !== false) {
+    const renameButton = document.createElement("button");
+    renameButton.type = "button";
+    renameButton.className = "rename-staff-btn";
+    renameButton.textContent = "Rename";
+
+    renameButton.addEventListener("click", () => {
+      const editor = document.createElement("form");
+      editor.className = "staff-inline-edit";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 80;
+      input.value = member.name;
+      input.required = true;
+
+      const saveButton = document.createElement("button");
+      saveButton.type = "submit";
+      saveButton.textContent = "Save";
+
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.textContent = "Cancel";
+
+      editor.append(input, saveButton, cancelButton);
+      name.replaceWith(editor);
+      input.focus();
+      input.select();
+
+      cancelButton.addEventListener("click", () => {
+        editor.replaceWith(name);
+      });
+
+      editor.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const newName = input.value.trim();
+
+        if (!newName) {
+          return;
+        }
+
+        try {
+          await save();
+          await StaffStorage.rename(member.id, newName);
+          setStaffManagerMessage("Staff name updated.");
+          await refreshStaffAfterChange();
+        } catch (error) {
+          console.error(error);
+          setStaffManagerMessage(error.message, true);
+        }
+      });
+    });
+
+    const deactivateButton = document.createElement("button");
+    deactivateButton.type = "button";
+    deactivateButton.className = "deactivate-staff-btn";
+    deactivateButton.textContent = "Deactivate";
+
+    deactivateButton.addEventListener("click", async () => {
+      const confirmed = confirm(
+        `Deactivate ${member.name}?\n\nHistorical timesheet records will be kept.`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await save();
+        await StaffStorage.setActive(member.id, false);
+        setStaffManagerMessage(`${member.name} deactivated.`);
+        await refreshStaffAfterChange();
+      } catch (error) {
+        console.error(error);
+        setStaffManagerMessage(error.message, true);
+      }
+    });
+
+    actions.append(renameButton, deactivateButton);
+  } else {
+    const reactivateButton = document.createElement("button");
+    reactivateButton.type = "button";
+    reactivateButton.className = "reactivate-staff-btn";
+    reactivateButton.textContent = "Reactivate";
+
+    reactivateButton.addEventListener("click", async () => {
+      try {
+        await StaffStorage.setActive(member.id, true);
+        setStaffManagerMessage(`${member.name} reactivated.`);
+        await refreshStaffAfterChange();
+      } catch (error) {
+        console.error(error);
+        setStaffManagerMessage(error.message, true);
+      }
+    });
+
+    actions.appendChild(reactivateButton);
+  }
+
+  row.append(order, name, actions);
+  return row;
+}
+
+async function renderStaffManager() {
+  activeStaffList.innerHTML = "";
+  inactiveStaffList.innerHTML = "";
+
+  const allStaff = await StaffStorage.loadAll();
+  const active = allStaff.filter((member) => member.active !== false);
+  const inactive = allStaff.filter((member) => member.active === false);
+
+  if (!active.length) {
+    activeStaffList.innerHTML =
+      '<div class="staff-list-empty">No active staff members.</div>';
+  } else {
+    active.forEach((member, index) => {
+      activeStaffList.appendChild(
+        createStaffManagerRow(member, index)
+      );
+    });
+  }
+
+  inactiveStaffCount.textContent = String(inactive.length);
+
+  if (!inactive.length) {
+    inactiveStaffList.innerHTML =
+      '<div class="staff-list-empty">No inactive staff members.</div>';
+  } else {
+    inactive.forEach((member, index) => {
+      inactiveStaffList.appendChild(
+        createStaffManagerRow(member, index)
+      );
+    });
+  }
+}
+
+async function refreshStaffAfterChange() {
+  await renderStaffManager();
+  await load();
+}
+
+async function openStaffModal() {
+  setStaffManagerMessage("");
+  staffModal.hidden = false;
+  document.body.classList.add("staff-modal-open");
+
+  try {
+    await renderStaffManager();
+    newStaffName.focus();
+  } catch (error) {
+    console.error(error);
+    setStaffManagerMessage(error.message, true);
+  }
+}
+
+function closeStaffModal() {
+  staffModal.hidden = true;
+  document.body.classList.remove("staff-modal-open");
+}
+
+manageStaffBtn.addEventListener("click", openStaffModal);
+closeStaffModalBtn.addEventListener("click", closeStaffModal);
+
+staffModal
+  .querySelectorAll("[data-close-staff-modal]")
+  .forEach((element) => {
+    element.addEventListener("click", closeStaffModal);
+  });
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !staffModal.hidden) {
+    closeStaffModal();
+  }
+});
+
+addStaffForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const name = newStaffName.value.trim();
+
+  if (!name) {
+    return;
+  }
+
+  try {
+    await save();
+    await StaffStorage.add(name);
+    newStaffName.value = "";
+    setStaffManagerMessage(`${name} added.`);
+    await refreshStaffAfterChange();
+    newStaffName.focus();
+  } catch (error) {
+    console.error(error);
+    setStaffManagerMessage(error.message, true);
+  }
+});
 
 /* =====================================================
    EVENTS
