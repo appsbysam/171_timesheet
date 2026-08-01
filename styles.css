@@ -452,12 +452,36 @@ button.danger {
 }
 
 .summary-card > div {
-  display: flex;
-  justify-content: space-between;
   padding: 7px 9px;
   border-bottom: 1px solid #ccc;
   font-size: 12px;
   font-weight: 900;
+}
+
+#employeeTotals {
+  display: block;
+  padding: 0;
+}
+
+.employee-total-row {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 9px !important;
+  border-bottom: 1px solid #ccc !important;
+}
+
+.employee-total-name {
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.employee-total-value {
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .summary-card > div:last-child {
@@ -465,6 +489,9 @@ button.danger {
 }
 
 .summary-card .grand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: #111;
   color: #fff;
   font-size: 14px;
@@ -1325,3 +1352,23 @@ body.staff-modal-open {
   .staff-toast,
   .staff-manage-row { transition: none; animation: none !important; }
 }
+
+
+/* =====================================================
+   CUSTOM CONFIRMATION DIALOG
+   ===================================================== */
+.app-confirm-modal {position:fixed;inset:0;z-index:2200;display:grid;place-items:center;padding:18px}
+.app-confirm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(2px)}
+.app-confirm-dialog{position:relative;z-index:1;width:min(100%,430px);padding:20px;border:1px solid #d7d7d7;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.app-confirm-heading{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.app-confirm-icon{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:#fff4d6;color:#9a6700;font-size:21px;font-weight:900}
+.app-confirm-title{margin:0;font-size:21px;line-height:1.1}
+.app-confirm-message{margin:0;color:#222;font-size:15px;font-weight:800}
+.app-confirm-detail{margin:9px 0 0;color:#666;font-size:13px;line-height:1.45}
+.app-confirm-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.app-confirm-actions button{min-width:108px;padding:10px 14px;border-radius:9px;cursor:pointer}
+.app-confirm-cancel{border-color:#aaa;background:#fff;color:#222}
+.app-confirm-accept{border-color:#b42323;background:#d32626;color:#fff}
+.app-confirm-accept:hover{background:#ad1d1d}
+@media(max-width:420px){.app-confirm-actions{display:grid;grid-template-columns:1fr 1fr}.app-confirm-actions button{min-width:0}}
+@media print{.app-confirm-modal{display:none!important}}

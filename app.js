@@ -146,6 +146,26 @@ const managerSignOutBtn =
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
+
+function showConfirmDialog({title="Warning",message,detail="",confirmText="Confirm",cancelText="Cancel"}) {
+  return new Promise((resolve) => {
+    const modal=document.createElement("div");
+    modal.className="app-confirm-modal";
+    modal.innerHTML=`<div class="app-confirm-backdrop"></div><section class="app-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="appConfirmTitle"><div class="app-confirm-heading"><span class="app-confirm-icon" aria-hidden="true">!</span><h2 id="appConfirmTitle" class="app-confirm-title"></h2></div><p class="app-confirm-message"></p><p class="app-confirm-detail"></p><div class="app-confirm-actions"><button type="button" class="app-confirm-cancel"></button><button type="button" class="app-confirm-accept"></button></div></section>`;
+    modal.querySelector(".app-confirm-title").textContent=title;
+    modal.querySelector(".app-confirm-message").textContent=message;
+    const detailEl=modal.querySelector(".app-confirm-detail"); detailEl.textContent=detail; detailEl.hidden=!detail;
+    const cancelBtn=modal.querySelector(".app-confirm-cancel"); cancelBtn.textContent=cancelText;
+    const confirmBtn=modal.querySelector(".app-confirm-accept"); confirmBtn.textContent=confirmText;
+    const oldOverflow=document.body.style.overflow; document.body.style.overflow="hidden"; document.body.appendChild(modal);
+    const close=(result)=>{document.body.style.overflow=oldOverflow;document.removeEventListener("keydown",onKey);modal.remove();resolve(result)};
+    const onKey=(e)=>{if(e.key==="Escape")close(false)};
+    cancelBtn.addEventListener("click",()=>close(false));
+    confirmBtn.addEventListener("click",()=>close(true));
+    modal.querySelector(".app-confirm-backdrop").addEventListener("click",()=>close(false));
+    document.addEventListener("keydown",onKey); confirmBtn.focus();
+  });
+}
 let staffOperationBusy = false;
 let staffStatusResetTimer = null;
 let staffToastTimer = null;
@@ -1586,9 +1606,12 @@ function createStaffManagerRow(member, index) {
     deactivateButton.textContent = "Deactivate";
 
     deactivateButton.addEventListener("click", async () => {
-      const confirmed = confirm(
-        `Deactivate ${member.name}?\n\nHistorical timesheet records will be kept.`
-      );
+      const confirmed = await showConfirmDialog({
+        title: "Warning",
+        message: `Deactivate ${member.name}?`,
+        detail: "Historical timesheet records will be kept.",
+        confirmText: "Deactivate"
+      });
 
       if (!confirmed) {
         return;
@@ -1932,11 +1955,14 @@ document
   .addEventListener(
     "click",
     async () => {
-      if (
-        !confirm(
-          "Clear all entries for this week?"
-        )
-      ) {
+      const confirmed = await showConfirmDialog({
+        title: "Warning",
+        message: "Clear all entries for this week?",
+        detail: "This will remove the saved entries for the selected week.",
+        confirmText: "Clear Week"
+      });
+
+      if (!confirmed) {
         return;
       }
 
