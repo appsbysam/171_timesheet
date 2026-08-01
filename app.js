@@ -1,4 +1,6 @@
-const SUPABASE_URL = "https://cebgyyairqctbgrocxgl.supabase.co";
+const SUPABASE_URL =
+  "https://cebgyyairqctbgrocxgl.supabase.co";
+
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_VFT7GrL1rJtmV0hv0CPrlg_qjZXq4PT";
 
@@ -6,11 +8,11 @@ const SUPABASE_PUBLISHABLE_KEY =
   Leave this set to false for automatic operation.
 
   false:
-  - Local file / localhost = local browser storage
-  - GitHub Pages / live website = Supabase cloud database
+  - Local file / localhost uses local browser storage.
+  - GitHub Pages / live website uses Supabase.
 
   true:
-  - Always use local browser storage, even on the live website
+  - Always use local browser storage.
 */
 const FORCE_LOCAL_MODE = false;
 
@@ -36,35 +38,74 @@ const days = [
   "Saturday"
 ];
 
-const timesheet = document.getElementById("timesheet");
-const template = document.getElementById("dayTemplate");
-const weekStart = document.getElementById("weekStart");
-const weekEnd = document.getElementById("weekEnd");
-const statusEl = document.getElementById("status");
-const statusIndicator = document.getElementById("statusIndicator");
-const saveBtn = document.getElementById("saveBtn");
+const DEFAULT_LOCAL_STAFF = [
+  {
+    id: "local-mikayla",
+    name: "Mikayla",
+    active: true
+  },
+  {
+    id: "local-monique",
+    name: "Monique",
+    active: true
+  }
+];
 
+const timesheet =
+  document.getElementById("timesheet");
+
+const dayTemplate =
+  document.getElementById("dayTemplate");
+
+const employeeRowTemplate =
+  document.getElementById("employeeRowTemplate");
+
+const employeeTotalTemplate =
+  document.getElementById("employeeTotalTemplate");
+
+const employeeTotals =
+  document.getElementById("employeeTotals");
+
+const weekStart =
+  document.getElementById("weekStart");
+
+const weekEnd =
+  document.getElementById("weekEnd");
+
+const statusEl =
+  document.getElementById("status");
+
+const statusIndicator =
+  document.getElementById("statusIndicator");
+
+const saveBtn =
+  document.getElementById("saveBtn");
+
+let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
 
-/*
-  Creates a separate local-storage record for each week.
-*/
-function localStorageKey(week) {
+/* =====================================================
+   LOCAL STORAGE KEYS
+   ===================================================== */
+
+function timesheetStorageKey(week) {
   return `171-cafe-timesheet-${week}`;
 }
 
-/*
-  Storage layer.
+function staffStorageKey() {
+  return "171-cafe-staff-members";
+}
 
-  The rest of the application calls these functions without needing
-  to know whether the data is being stored locally or in Supabase.
-*/
-const Storage = {
+/* =====================================================
+   TIMESHEET STORAGE
+   ===================================================== */
+
+const TimesheetStorage = {
   async save(week, rows) {
     if (LOCAL_MODE) {
       localStorage.setItem(
-        localStorageKey(week),
+        timesheetStorageKey(week),
         JSON.stringify(rows)
       );
 
@@ -80,6 +121,10 @@ const Storage = {
       throw deleteError;
     }
 
+    if (!rows.length) {
+      return;
+    }
+
     const { error: insertError } = await db
       .from("timesheets")
       .insert(rows);
@@ -91,7 +136,10 @@ const Storage = {
 
   async load(week) {
     if (LOCAL_MODE) {
-      const saved = localStorage.getItem(localStorageKey(week));
+      const saved =
+        localStorage.getItem(
+          timesheetStorageKey(week)
+        );
 
       if (!saved) {
         return [];
@@ -99,9 +147,16 @@ const Storage = {
 
       try {
         const parsed = JSON.parse(saved);
-        return Array.isArray(parsed) ? parsed : [];
+
+        return Array.isArray(parsed)
+          ? parsed
+          : [];
       } catch (error) {
-        console.error("Unable to read local timesheet:", error);
+        console.error(
+          "Unable to read local timesheet:",
+          error
+        );
+
         return [];
       }
     }
@@ -120,7 +175,10 @@ const Storage = {
 
   async clear(week) {
     if (LOCAL_MODE) {
-      localStorage.removeItem(localStorageKey(week));
+      localStorage.removeItem(
+        timesheetStorageKey(week)
+      );
+
       return;
     }
 
@@ -135,6 +193,67 @@ const Storage = {
   }
 };
 
+/* =====================================================
+   STAFF STORAGE
+   ===================================================== */
+
+const StaffStorage = {
+  async loadActive() {
+    if (LOCAL_MODE) {
+      const saved =
+        localStorage.getItem(
+          staffStorageKey()
+        );
+
+      if (!saved) {
+        localStorage.setItem(
+          staffStorageKey(),
+          JSON.stringify(DEFAULT_LOCAL_STAFF)
+        );
+
+        return [...DEFAULT_LOCAL_STAFF];
+      }
+
+      try {
+        const parsed = JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) {
+          return [...DEFAULT_LOCAL_STAFF];
+        }
+
+        return parsed.filter(
+          (member) => member.active !== false
+        );
+      } catch (error) {
+        console.error(
+          "Unable to read the local staff list:",
+          error
+        );
+
+        return [...DEFAULT_LOCAL_STAFF];
+      }
+    }
+
+    const { data, error } = await db
+      .from("staff_members")
+      .select("id, name, active, created_at")
+      .eq("active", true)
+      .order("created_at", {
+        ascending: true
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  }
+};
+
+/* =====================================================
+   MODE BADGE
+   ===================================================== */
+
 function addModeBadge() {
   const header =
     document.querySelector(".brand-copy") ||
@@ -144,9 +263,20 @@ function addModeBadge() {
     return;
   }
 
-  const badge = document.createElement("div");
+  const existingBadge =
+    document.getElementById(
+      "storageModeBadge"
+    );
+
+  if (existingBadge) {
+    existingBadge.remove();
+  }
+
+  const badge =
+    document.createElement("div");
 
   badge.id = "storageModeBadge";
+
   badge.textContent = LOCAL_MODE
     ? "● LOCAL MODE"
     : "● ONLINE MODE";
@@ -162,11 +292,13 @@ function addModeBadge() {
   if (LOCAL_MODE) {
     badge.style.background = "#dbeafe";
     badge.style.color = "#1d4ed8";
+
     badge.title =
       "This version saves only in this browser and does not update Supabase.";
   } else {
     badge.style.background = "#dcfce7";
     badge.style.color = "#166534";
+
     badge.title =
       "This version saves to the Supabase cloud database.";
   }
@@ -174,10 +306,22 @@ function addModeBadge() {
   header.appendChild(badge);
 }
 
-function setStatus(message, isError = false, state = null) {
+/* =====================================================
+   STATUS AND SAVE BUTTON
+   ===================================================== */
+
+function setStatus(
+  message,
+  isError = false,
+  state = null
+) {
   if (statusEl) {
     statusEl.textContent = message;
-    statusEl.classList.toggle("error", isError);
+
+    statusEl.classList.toggle(
+      "error",
+      isError
+    );
   }
 
   if (!statusIndicator) {
@@ -192,16 +336,29 @@ function setStatus(message, isError = false, state = null) {
     "status-loading"
   );
 
-  if (isError || state === "error") {
-    statusIndicator.classList.add("status-error");
+  if (
+    isError ||
+    state === "error"
+  ) {
+    statusIndicator.classList.add(
+      "status-error"
+    );
   } else if (state === "unsaved") {
-    statusIndicator.classList.add("status-unsaved");
+    statusIndicator.classList.add(
+      "status-unsaved"
+    );
   } else if (state === "saving") {
-    statusIndicator.classList.add("status-saving");
+    statusIndicator.classList.add(
+      "status-saving"
+    );
   } else if (state === "loading") {
-    statusIndicator.classList.add("status-loading");
+    statusIndicator.classList.add(
+      "status-loading"
+    );
   } else {
-    statusIndicator.classList.add("status-saved");
+    statusIndicator.classList.add(
+      "status-saved"
+    );
   }
 }
 
@@ -236,24 +393,44 @@ function setSaveButtonState(state) {
   }
 }
 
-function makeTimeOptions(startMinutes, endMinutes) {
+/* =====================================================
+   TIME OPTIONS
+   ===================================================== */
+
+function makeTimeOptions(
+  startMinutes,
+  endMinutes
+) {
   const options = [];
 
   for (
-    let minutes = startMinutes;
-    minutes <= endMinutes;
-    minutes += 30
+    let currentMinutes = startMinutes;
+    currentMinutes <= endMinutes;
+    currentMinutes += 30
   ) {
-    const hour24 = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const suffix = hour24 < 12 ? "am" : "pm";
-    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const hour24 =
+      Math.floor(currentMinutes / 60);
+
+    const minuteValue =
+      currentMinutes % 60;
+
+    const suffix =
+      hour24 < 12 ? "am" : "pm";
+
+    const hour12 =
+      hour24 % 12 === 0
+        ? 12
+        : hour24 % 12;
 
     options.push({
-      value: `${String(hour24).padStart(2, "0")}:${String(
-        mins
-      ).padStart(2, "0")}`,
-      label: `${hour12}:${String(mins).padStart(2, "0")} ${suffix}`
+      value:
+        `${String(hour24).padStart(2, "0")}:` +
+        `${String(minuteValue).padStart(2, "0")}`,
+
+      label:
+        `${hour12}:` +
+        `${String(minuteValue).padStart(2, "0")} ` +
+        suffix
     });
   }
 
@@ -261,7 +438,8 @@ function makeTimeOptions(startMinutes, endMinutes) {
 }
 
 function getTimeOptions(day, type) {
-  const isSaturday = day === "Saturday";
+  const isSaturday =
+    day === "Saturday";
 
   if (type === "start") {
     return isSaturday
@@ -274,11 +452,16 @@ function getTimeOptions(day, type) {
     : makeTimeOptions(480, 900);
 }
 
-function populateSelect(select, options) {
-  select.innerHTML = '<option value="">Select</option>';
+function populateSelect(
+  select,
+  options
+) {
+  select.innerHTML =
+    '<option value="">Select</option>';
 
   options.forEach((option) => {
-    const element = document.createElement("option");
+    const element =
+      document.createElement("option");
 
     element.value = option.value;
     element.textContent = option.label;
@@ -287,84 +470,239 @@ function populateSelect(select, options) {
   });
 }
 
-function build() {
-  days.forEach((day) => {
-    const node = template.content.cloneNode(true);
-    const block = node.querySelector(".day-block");
+/* =====================================================
+   DYNAMIC TIMESHEET BUILDING
+   ===================================================== */
 
-    block.dataset.day = day;
-    node.querySelector("h2").textContent = day.toUpperCase();
+function createEmployeeRow(
+  member,
+  day
+) {
+  const node =
+    employeeRowTemplate.content.cloneNode(
+      true
+    );
 
-    node.querySelectorAll(".shift-row").forEach((row) => {
-      const employee = row.dataset.employee;
-      const start = row.querySelector(".start");
-      const finish = row.querySelector(".finish");
+  const row =
+    node.querySelector(".shift-row");
 
-      populateSelect(start, getTimeOptions(day, "start"));
-      populateSelect(finish, getTimeOptions(day, "finish"));
+  const nameElement =
+    node.querySelector(".employee-name");
 
-      start.setAttribute(
-        "aria-label",
-        `${day} ${employee} start`
-      );
+  const start =
+    node.querySelector(".start");
 
-      finish.setAttribute(
-        "aria-label",
-        `${day} ${employee} finish`
-      );
+  const finish =
+    node.querySelector(".finish");
 
-      row.querySelectorAll("select").forEach((select) => {
-        select.addEventListener("change", () => {
+  row.dataset.employee = member.name;
+  row.dataset.employeeId = member.id;
+
+  nameElement.textContent = member.name;
+
+  populateSelect(
+    start,
+    getTimeOptions(day, "start")
+  );
+
+  populateSelect(
+    finish,
+    getTimeOptions(day, "finish")
+  );
+
+  start.setAttribute(
+    "aria-label",
+    `${day} ${member.name} start`
+  );
+
+  finish.setAttribute(
+    "aria-label",
+    `${day} ${member.name} finish`
+  );
+
+  row
+    .querySelectorAll("select")
+    .forEach((select) => {
+      select.addEventListener(
+        "change",
+        () => {
           calculateRow(row);
           calculateTotals();
           scheduleSave();
-        });
-      });
+        }
+      );
+    });
+
+  return node;
+}
+
+function buildTimesheet() {
+  timesheet.innerHTML = "";
+
+  days.forEach((day) => {
+    const node =
+      dayTemplate.content.cloneNode(
+        true
+      );
+
+    const block =
+      node.querySelector(".day-block");
+
+    const heading =
+      node.querySelector("h2");
+
+    const employeeRows =
+      node.querySelector(".employeeRows");
+
+    block.dataset.day = day;
+    heading.textContent =
+      day.toUpperCase();
+
+    staffMembers.forEach((member) => {
+      employeeRows.appendChild(
+        createEmployeeRow(
+          member,
+          day
+        )
+      );
     });
 
     timesheet.appendChild(node);
   });
 }
 
+function createEmployeeTotalRow(member) {
+  const node =
+    employeeTotalTemplate.content.cloneNode(
+      true
+    );
+
+  const row =
+    node.querySelector(
+      ".employee-total-row"
+    );
+
+  const nameElement =
+    node.querySelector(
+      ".employee-total-name"
+    );
+
+  const totalElement =
+    node.querySelector(
+      ".employee-total-value"
+    );
+
+  row.dataset.employee = member.name;
+  row.dataset.employeeId = member.id;
+
+  nameElement.textContent =
+    member.name;
+
+  totalElement.textContent = "0.00";
+
+  /*
+    These styles preserve the same appearance as
+    the previous fixed summary rows.
+  */
+  row.style.display = "flex";
+  row.style.justifyContent =
+    "space-between";
+  row.style.padding = "7px 9px";
+  row.style.borderBottom =
+    "1px solid #ccc";
+  row.style.fontSize = "12px";
+  row.style.fontWeight = "900";
+
+  return node;
+}
+
+function buildEmployeeTotals() {
+  employeeTotals.innerHTML = "";
+
+  staffMembers.forEach((member) => {
+    employeeTotals.appendChild(
+      createEmployeeTotalRow(member)
+    );
+  });
+}
+
+function rebuildStaffInterface() {
+  buildTimesheet();
+  buildEmployeeTotals();
+  calculateTotals();
+}
+
+/* =====================================================
+   CALCULATIONS
+   ===================================================== */
+
 function minutes(value) {
   if (!value) {
     return null;
   }
 
-  const [hours, mins] = value.split(":").map(Number);
+  const [hours, minuteValue] =
+    value.split(":").map(Number);
 
-  return hours * 60 + mins;
+  return hours * 60 + minuteValue;
 }
 
 function formatDecimal(totalMinutes) {
-  return (totalMinutes / 60).toFixed(2);
+  return (
+    totalMinutes / 60
+  ).toFixed(2);
 }
 
 function calculateRow(row) {
-  const startSelect = row.querySelector(".start");
-  const finishSelect = row.querySelector(".finish");
+  const startSelect =
+    row.querySelector(".start");
 
-  const start = minutes(startSelect.value);
-  const finish = minutes(finishSelect.value);
+  const finishSelect =
+    row.querySelector(".finish");
+
+  const start =
+    minutes(startSelect.value);
+
+  const finish =
+    minutes(finishSelect.value);
 
   let total = 0;
 
-  startSelect.classList.remove("invalid");
-  finishSelect.classList.remove("invalid");
+  startSelect.classList.remove(
+    "invalid"
+  );
 
-  if (start !== null && finish !== null) {
+  finishSelect.classList.remove(
+    "invalid"
+  );
+
+  if (
+    start !== null &&
+    finish !== null
+  ) {
     total = finish - start;
 
-    if (total < 0 || total > 630) {
-      startSelect.classList.add("invalid");
-      finishSelect.classList.add("invalid");
+    if (
+      total < 0 ||
+      total > 630
+    ) {
+      startSelect.classList.add(
+        "invalid"
+      );
+
+      finishSelect.classList.add(
+        "invalid"
+      );
+
       total = 0;
     }
   }
 
   row.dataset.minutes = total;
 
-  row.querySelector(".row-total").textContent =
+  row.querySelector(
+    ".row-total"
+  ).textContent =
     formatDecimal(total);
 
   row.classList.toggle(
@@ -376,28 +714,77 @@ function calculateRow(row) {
 }
 
 function calculateTotals() {
-  const totals = {
-    Mikayla: 0,
-    Monique: 0
-  };
+  const totals = {};
+
+  staffMembers.forEach((member) => {
+    totals[member.name] = 0;
+  });
 
   document
     .querySelectorAll(".shift-row")
     .forEach((row) => {
-      totals[row.dataset.employee] += Number(
+      const employee =
+        row.dataset.employee;
+
+      if (
+        totals[employee] === undefined
+      ) {
+        totals[employee] = 0;
+      }
+
+      totals[employee] += Number(
         row.dataset.minutes || 0
       );
     });
 
-  document.getElementById("michaelaTotal").textContent =
-    formatDecimal(totals.Mikayla);
+  let weekTotalMinutes = 0;
 
-  document.getElementById("moniqueTotal").textContent =
-    formatDecimal(totals.Monique);
+  staffMembers.forEach((member) => {
+    const memberMinutes =
+      totals[member.name] || 0;
 
-  document.getElementById("weekTotal").textContent =
-    formatDecimal(totals.Mikayla + totals.Monique);
+    weekTotalMinutes +=
+      memberMinutes;
+
+    const totalRow = [
+      ...document.querySelectorAll(
+        ".employee-total-row"
+      )
+    ].find(
+      (row) =>
+        row.dataset.employeeId ===
+        String(member.id)
+    );
+
+    if (!totalRow) {
+      return;
+    }
+
+    const valueElement =
+      totalRow.querySelector(
+        ".employee-total-value"
+      );
+
+    valueElement.textContent =
+      formatDecimal(memberMinutes);
+  });
+
+  const weekTotalElement =
+    document.getElementById(
+      "weekTotal"
+    );
+
+  if (weekTotalElement) {
+    weekTotalElement.textContent =
+      formatDecimal(
+        weekTotalMinutes
+      );
+  }
 }
+
+/* =====================================================
+   WEEK DATES
+   ===================================================== */
 
 function updateWeekEnd() {
   if (!weekStart.value) {
@@ -405,25 +792,45 @@ function updateWeekEnd() {
     return;
   }
 
-  const date = new Date(`${weekStart.value}T12:00:00`);
+  const date =
+    new Date(
+      `${weekStart.value}T12:00:00`
+    );
 
-  date.setDate(date.getDate() + 5);
+  date.setDate(
+    date.getDate() + 5
+  );
 
-  weekEnd.value = date.toISOString().slice(0, 10);
+  weekEnd.value =
+    date.toISOString().slice(0, 10);
 }
+
+/* =====================================================
+   MANAGER DETAILS
+   ===================================================== */
 
 function managerMetadata() {
   return JSON.stringify({
     managerNotes:
-      document.getElementById("managerNotes").value,
+      document.getElementById(
+        "managerNotes"
+      ).value,
 
     managerName:
-      document.getElementById("managerName").value,
+      document.getElementById(
+        "managerName"
+      ).value,
 
     managerDate:
-      document.getElementById("managerDate").value
+      document.getElementById(
+        "managerDate"
+      ).value
   });
 }
+
+/* =====================================================
+   COLLECT CURRENT TIMESHEET
+   ===================================================== */
 
 function collectRows() {
   const rows = [];
@@ -436,18 +843,27 @@ function collectRows() {
         .querySelectorAll(".shift-row")
         .forEach((row) => {
           rows.push({
-            week_start: weekStart.value,
-            employee: row.dataset.employee,
-            day: block.dataset.day,
+            week_start:
+              weekStart.value,
+
+            employee:
+              row.dataset.employee,
+
+            day:
+              block.dataset.day,
 
             start_time:
-              row.querySelector(".start").value || null,
+              row.querySelector(".start")
+                .value || null,
 
             finish_time:
-              row.querySelector(".finish").value || null,
+              row.querySelector(".finish")
+                .value || null,
 
             hours:
-              Number(row.dataset.minutes || 0) / 60,
+              Number(
+                row.dataset.minutes || 0
+              ) / 60,
 
             notes
           });
@@ -457,22 +873,37 @@ function collectRows() {
   return rows;
 }
 
+/* =====================================================
+   AUTOSAVE
+   ===================================================== */
+
 function scheduleSave() {
-  if (isLoading || !weekStart.value) {
+  if (
+    isLoading ||
+    !weekStart.value
+  ) {
     return;
   }
 
   clearTimeout(saveTimer);
 
   setSaveButtonState("ready");
-  setStatus("Unsaved changes", false, "unsaved");
 
-  saveTimer = setTimeout(() => {
-    save(false);
-  }, 700);
+  setStatus(
+    "Unsaved changes",
+    false,
+    "unsaved"
+  );
+
+  saveTimer = setTimeout(
+    () => {
+      save();
+    },
+    700
+  );
 }
 
-async function save(show = true) {
+async function save() {
   if (!weekStart.value) {
     return;
   }
@@ -492,7 +923,10 @@ async function save(show = true) {
       "saving"
     );
 
-    await Storage.save(weekStart.value, rows);
+    await TimesheetStorage.save(
+      weekStart.value,
+      rows
+    );
 
     setSaveButtonState("saved");
 
@@ -516,9 +950,15 @@ async function save(show = true) {
   }
 }
 
+/* =====================================================
+   CLEAR CURRENT FORM
+   ===================================================== */
+
 function clearForm() {
   document
-    .querySelectorAll(".shift-row select")
+    .querySelectorAll(
+      ".shift-row select"
+    )
     .forEach((select) => {
       select.value = "";
     });
@@ -527,11 +967,112 @@ function clearForm() {
     .querySelectorAll(".shift-row")
     .forEach(calculateRow);
 
-  document.getElementById("managerNotes").value = "";
-  document.getElementById("managerName").value = "";
+  document.getElementById(
+    "managerNotes"
+  ).value = "";
+
+  document.getElementById(
+    "managerName"
+  ).value = "";
 
   calculateTotals();
 }
+
+/* =====================================================
+   APPLY SAVED RECORDS TO THE PAGE
+   ===================================================== */
+
+function applyTimesheetData(data) {
+  if (!data.length) {
+    calculateTotals();
+    return;
+  }
+
+  let metadata = {};
+
+  try {
+    metadata =
+      JSON.parse(
+        data[0].notes || "{}"
+      );
+  } catch (error) {
+    console.warn(
+      "Unable to read manager information:",
+      error
+    );
+  }
+
+  document.getElementById(
+    "managerNotes"
+  ).value =
+    metadata.managerNotes || "";
+
+  document.getElementById(
+    "managerName"
+  ).value =
+    metadata.managerName || "";
+
+  document.getElementById(
+    "managerDate"
+  ).value =
+    metadata.managerDate ||
+    document.getElementById(
+      "managerDate"
+    ).value;
+
+  data.forEach((record) => {
+    const block = [
+      ...document.querySelectorAll(
+        ".day-block"
+      )
+    ].find(
+      (item) =>
+        item.dataset.day ===
+        record.day
+    );
+
+    if (!block) {
+      return;
+    }
+
+    const row = [
+      ...block.querySelectorAll(
+        ".shift-row"
+      )
+    ].find(
+      (item) =>
+        item.dataset.employee ===
+        record.employee
+    );
+
+    if (!row) {
+      /*
+        This can happen when a historical record belongs
+        to a staff member who is no longer active.
+        The historical database record is left untouched.
+      */
+      return;
+    }
+
+    row.querySelector(
+      ".start"
+    ).value =
+      record.start_time || "";
+
+    row.querySelector(
+      ".finish"
+    ).value =
+      record.finish_time || "";
+
+    calculateRow(row);
+  });
+
+  calculateTotals();
+}
+
+/* =====================================================
+   LOAD STAFF AND WEEK TOGETHER
+   ===================================================== */
 
 async function load() {
   if (!weekStart.value) {
@@ -540,79 +1081,49 @@ async function load() {
 
   isLoading = true;
 
-  clearForm();
   setSaveButtonState("saving");
 
   setStatus(
     LOCAL_MODE
-      ? "Loading local week…"
-      : "Loading week from cloud…",
+      ? "Loading local data…"
+      : "Loading staff and timesheet…",
     false,
     "loading"
   );
 
   try {
-    const data = await Storage.load(weekStart.value);
+    const [
+      loadedStaff,
+      timesheetData
+    ] = await Promise.all([
+      StaffStorage.loadActive(),
+      TimesheetStorage.load(
+        weekStart.value
+      )
+    ]);
 
-    if (data.length) {
-      let metadata = {};
+    staffMembers = loadedStaff;
 
-      try {
-        metadata = JSON.parse(data[0].notes || "{}");
-      } catch (error) {
-        console.warn(
-          "Unable to read manager information:",
-          error
-        );
-      }
+    rebuildStaffInterface();
+    clearForm();
 
-      document.getElementById("managerNotes").value =
-        metadata.managerNotes || "";
+    applyTimesheetData(
+      timesheetData
+    );
 
-      document.getElementById("managerName").value =
-        metadata.managerName || "";
-
-      document.getElementById("managerDate").value =
-        metadata.managerDate ||
-        document.getElementById("managerDate").value;
-
-      data.forEach((record) => {
-        const block = [
-          ...document.querySelectorAll(".day-block")
-        ].find(
-          (item) =>
-            item.dataset.day === record.day
-        );
-
-        if (!block) {
-          return;
-        }
-
-        const row = [
-          ...block.querySelectorAll(".shift-row")
-        ].find(
-          (item) =>
-            item.dataset.employee === record.employee
-        );
-
-        if (!row) {
-          return;
-        }
-
-        row.querySelector(".start").value =
-          record.start_time || "";
-
-        row.querySelector(".finish").value =
-          record.finish_time || "";
-
-        calculateRow(row);
-      });
-    }
-
-    calculateTotals();
     setSaveButtonState("saved");
 
-    if (data.length) {
+    if (!staffMembers.length) {
+      setStatus(
+        "No active staff members found",
+        true,
+        "error"
+      );
+
+      return;
+    }
+
+    if (timesheetData.length) {
       setStatus(
         LOCAL_MODE
           ? "Loaded from this computer"
@@ -644,10 +1155,17 @@ async function load() {
   }
 }
 
-weekStart.addEventListener("change", async () => {
-  updateWeekEnd();
-  await load();
-});
+/* =====================================================
+   EVENTS
+   ===================================================== */
+
+weekStart.addEventListener(
+  "change",
+  async () => {
+    updateWeekEnd();
+    await load();
+  }
+);
 
 [
   "managerNotes",
@@ -656,113 +1174,162 @@ weekStart.addEventListener("change", async () => {
 ].forEach((id) => {
   document
     .getElementById(id)
-    .addEventListener("input", scheduleSave);
+    .addEventListener(
+      "input",
+      scheduleSave
+    );
 });
 
-saveBtn.addEventListener("click", () => {
-  save(true);
-});
+saveBtn.addEventListener(
+  "click",
+  () => {
+    save();
+  }
+);
 
 document
   .getElementById("printBtn")
-  .addEventListener("click", () => {
-    window.print();
-  });
+  .addEventListener(
+    "click",
+    () => {
+      window.print();
+    }
+  );
 
 document
   .getElementById("resetBtn")
-  .addEventListener("click", async () => {
-    if (
-      !confirm("Clear all entries for this week?")
-    ) {
-      return;
+  .addEventListener(
+    "click",
+    async () => {
+      if (
+        !confirm(
+          "Clear all entries for this week?"
+        )
+      ) {
+        return;
+      }
+
+      try {
+        setStatus(
+          LOCAL_MODE
+            ? "Clearing local week…"
+            : "Clearing cloud week…",
+          false,
+          "saving"
+        );
+
+        await TimesheetStorage.clear(
+          weekStart.value
+        );
+
+        clearForm();
+
+        setSaveButtonState("saved");
+
+        setStatus(
+          LOCAL_MODE
+            ? "Local week cleared"
+            : "Cloud week cleared",
+          false,
+          "saved"
+        );
+      } catch (error) {
+        console.error(error);
+
+        setSaveButtonState("error");
+
+        setStatus(
+          `Unable to clear: ${error.message}`,
+          true,
+          "error"
+        );
+      }
     }
-
-    try {
-      setStatus(
-        LOCAL_MODE
-          ? "Clearing local week…"
-          : "Clearing cloud week…",
-        false,
-        "saving"
-      );
-
-      await Storage.clear(weekStart.value);
-
-      clearForm();
-      setSaveButtonState("saved");
-
-      setStatus(
-        LOCAL_MODE
-          ? "Local week cleared"
-          : "Cloud week cleared",
-        false,
-        "saved"
-      );
-    } catch (error) {
-      console.error(error);
-
-      setSaveButtonState("error");
-
-      setStatus(
-        `Unable to clear: ${error.message}`,
-        true,
-        "error"
-      );
-    }
-  });
+  );
 
 function changeWeek(daysToAdd) {
   if (!weekStart.value) {
     return;
   }
 
-  const date = new Date(
-    `${weekStart.value}T12:00:00`
+  const date =
+    new Date(
+      `${weekStart.value}T12:00:00`
+    );
+
+  date.setDate(
+    date.getDate() + daysToAdd
   );
 
-  date.setDate(date.getDate() + daysToAdd);
-
-  weekStart.value = date
-    .toISOString()
-    .slice(0, 10);
+  weekStart.value =
+    date.toISOString().slice(0, 10);
 
   updateWeekEnd();
   load();
 }
 
 document
-  .getElementById("previousWeekBtn")
-  .addEventListener("click", () => {
-    changeWeek(-7);
-  });
+  .getElementById(
+    "previousWeekBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+      changeWeek(-7);
+    }
+  );
 
 document
-  .getElementById("nextWeekBtn")
-  .addEventListener("click", () => {
-    changeWeek(7);
-  });
+  .getElementById(
+    "nextWeekBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+      changeWeek(7);
+    }
+  );
 
-build();
-addModeBadge();
+/* =====================================================
+   START APPLICATION
+   ===================================================== */
 
-const today = new Date();
-const monday = new Date(today);
-const day = monday.getDay();
+async function initialiseApp() {
+  addModeBadge();
 
-monday.setDate(
-  monday.getDate() +
-    (day === 0 ? -6 : 1 - day)
-);
+  const today = new Date();
 
-weekStart.value = monday
-  .toISOString()
-  .slice(0, 10);
+  const monday =
+    new Date(today);
 
-document.getElementById("managerDate").value =
-  today.toISOString().slice(0, 10);
+  const currentDay =
+    monday.getDay();
 
-updateWeekEnd();
-calculateTotals();
-setSaveButtonState("saved");
-load();
+  monday.setDate(
+    monday.getDate() +
+      (
+        currentDay === 0
+          ? -6
+          : 1 - currentDay
+      )
+  );
+
+  weekStart.value =
+    monday
+      .toISOString()
+      .slice(0, 10);
+
+  document.getElementById(
+    "managerDate"
+  ).value =
+    today
+      .toISOString()
+      .slice(0, 10);
+
+  updateWeekEnd();
+  setSaveButtonState("saved");
+
+  await load();
+}
+
+initialiseApp();

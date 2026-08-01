@@ -47,7 +47,6 @@
 <body>
   <main class="app-shell">
 
-    <!-- Updated header only -->
     <header class="brand-header">
 
       <img
@@ -150,15 +149,7 @@
 
     <section class="summary-card">
 
-      <div>
-        <span>Mikayla</span>
-        <strong id="michaelaTotal">0.00</strong>
-      </div>
-
-      <div>
-        <span>Monique</span>
-        <strong id="moniqueTotal">0.00</strong>
-      </div>
+      <div id="employeeTotals"></div>
 
       <div class="grand">
         <span>Week total</span>
@@ -217,53 +208,42 @@
         <span>Total</span>
       </div>
 
-      <div
-        class="shift-row"
-        data-employee="Mikayla"
-      >
-
-        <strong>Mikayla</strong>
-
-        <select
-          class="start"
-          aria-label="Start time"
-        ></select>
-
-        <select
-          class="finish"
-          aria-label="Finish time"
-        ></select>
-
-        <output class="row-total">
-          0.00
-        </output>
-
-      </div>
-
-      <div
-        class="shift-row"
-        data-employee="Monique"
-      >
-
-        <strong>Monique</strong>
-
-        <select
-          class="start"
-          aria-label="Start time"
-        ></select>
-
-        <select
-          class="finish"
-          aria-label="Finish time"
-        ></select>
-
-        <output class="row-total">
-          0.00
-        </output>
-
-      </div>
+      <div class="employeeRows"></div>
 
     </article>
+
+  </template>
+
+  <template id="employeeRowTemplate">
+
+    <div class="shift-row">
+
+      <strong class="employee-name"></strong>
+
+      <select
+        class="start"
+        aria-label="Start time"
+      ></select>
+
+      <select
+        class="finish"
+        aria-label="Finish time"
+      ></select>
+
+      <output class="row-total">
+        0.00
+      </output>
+
+    </div>
+
+  </template>
+
+  <template id="employeeTotalTemplate">
+
+    <div class="employee-total-row">
+      <span class="employee-total-name"></span>
+      <strong class="employee-total-value">0.00</strong>
+    </div>
 
   </template>
 
