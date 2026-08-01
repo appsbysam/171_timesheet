@@ -169,6 +169,7 @@ function showConfirmDialog({title="Warning",message,detail="",confirmText="Confi
 let staffOperationBusy = false;
 let staffStatusResetTimer = null;
 let staffToastTimer = null;
+let pendingManagerAction = null;
 
 /* =====================================================
    LOCAL STORAGE KEYS
@@ -542,7 +543,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.0.0";
+  version.textContent = "Version 2.0.2";
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -1702,12 +1703,17 @@ async function getManagerSession() {
   return data.session;
 }
 
-async function requireManagerSession() {
+async function requireManagerSession(onAuthenticated = null) {
   const session = await getManagerSession();
 
   if (session) {
     return true;
   }
+
+  pendingManagerAction =
+    typeof onAuthenticated === "function"
+      ? onAuthenticated
+      : null;
 
   openManagerLogin();
   return false;
@@ -1806,12 +1812,18 @@ function closeStaffModal() {
 
 manageStaffBtn.addEventListener("click", openStaffModal);
 closeStaffModalBtn.addEventListener("click", closeStaffModal);
-closeManagerLoginBtn.addEventListener("click", closeManagerLogin);
+closeManagerLoginBtn.addEventListener("click", () => {
+  pendingManagerAction = null;
+  closeManagerLogin();
+});
 
 managerLoginModal
   .querySelectorAll("[data-close-manager-login]")
   .forEach((element) => {
-    element.addEventListener("click", closeManagerLogin);
+    element.addEventListener("click", () => {
+      pendingManagerAction = null;
+      closeManagerLogin();
+    });
   });
 
 managerLoginForm.addEventListener("submit", async (event) => {
@@ -1840,7 +1852,15 @@ managerLoginForm.addEventListener("submit", async (event) => {
     }
 
     closeManagerLogin();
-    await showStaffModal();
+
+    const actionToRun = pendingManagerAction;
+    pendingManagerAction = null;
+
+    if (actionToRun) {
+      await actionToRun();
+    } else {
+      await showStaffModal();
+    }
   } catch (error) {
     console.error(error);
     setManagerLoginMessage(
@@ -1867,6 +1887,7 @@ managerSignOutBtn.addEventListener("click", async () => {
       throw error;
     }
 
+    pendingManagerAction = null;
     closeStaffModal();
     setStatus("Manager signed out", false, "saved");
   } catch (error) {
@@ -1887,6 +1908,7 @@ document.addEventListener("keydown", (event) => {
   }
 
   if (!managerLoginModal.hidden) {
+    pendingManagerAction = null;
     closeManagerLogin();
     return;
   }
@@ -1965,53 +1987,74 @@ document
     }
   );
 
+async function clearSelectedWeek() {
+  const confirmed = await showConfirmDialog({
+    title: "Warning",
+    message: "Clear all entries for this week?",
+    detail: "This will remove the saved entries for the selected week.",
+    confirmText: "Clear Week"
+  });
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    setStatus(
+      LOCAL_MODE
+        ? "Clearing local week…"
+        : "Clearing cloud week…",
+      false,
+      "saving"
+    );
+
+    await TimesheetStorage.clear(
+      weekStart.value
+    );
+
+    clearForm();
+
+    setSaveButtonState("saved");
+
+    setStatus(
+      LOCAL_MODE
+        ? "Local week cleared"
+        : "Cloud week cleared",
+      false,
+      "saved"
+    );
+  } catch (error) {
+    console.error(error);
+
+    setSaveButtonState("error");
+
+    setStatus(
+      `Unable to clear: ${error.message}`,
+      true,
+      "error"
+    );
+  }
+}
+
 document
   .getElementById("resetBtn")
   .addEventListener(
     "click",
     async () => {
-      const confirmed = await showConfirmDialog({
-        title: "Warning",
-        message: "Clear all entries for this week?",
-        detail: "This will remove the saved entries for the selected week.",
-        confirmText: "Clear Week"
-      });
-
-      if (!confirmed) {
-        return;
-      }
-
       try {
-        setStatus(
-          LOCAL_MODE
-            ? "Clearing local week…"
-            : "Clearing cloud week…",
-          false,
-          "saving"
+        const allowed = await requireManagerSession(
+          clearSelectedWeek
         );
 
-        await TimesheetStorage.clear(
-          weekStart.value
-        );
+        if (!allowed) {
+          return;
+        }
 
-        clearForm();
-
-        setSaveButtonState("saved");
-
-        setStatus(
-          LOCAL_MODE
-            ? "Local week cleared"
-            : "Cloud week cleared",
-          false,
-          "saved"
-        );
+        await clearSelectedWeek();
       } catch (error) {
         console.error(error);
-
-        setSaveButtonState("error");
-
         setStatus(
-          `Unable to clear: ${error.message}`,
+          `Unable to verify manager access: ${error.message}`,
           true,
           "error"
         );
