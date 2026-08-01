@@ -506,6 +506,9 @@ function addModeBadge() {
     existingBadge.remove();
   }
 
+  const wrapper = document.createElement("div");
+  wrapper.className = "header-status";
+
   const badge =
     document.createElement("div");
 
@@ -537,7 +540,14 @@ function addModeBadge() {
       "This version saves to the Supabase cloud database.";
   }
 
-  header.appendChild(badge);
+  const version = document.createElement("div");
+  version.className = "app-version";
+  version.textContent = "Version 2.0.0";
+
+  wrapper.appendChild(badge);
+  wrapper.appendChild(version);
+
+  header.appendChild(wrapper);
 }
 
 /* =====================================================

@@ -84,14 +84,23 @@ textarea {
   text-transform: none;
   white-space: nowrap;
 }
+.header-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin-left: auto;
+}
+
 .app-version {
-    text-align: right;
-    font-size: 11px;
-    color: #999;
-    margin: -4px 4px 0 0;
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    line-height: 1;
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  text-align: right;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 /*
   This badge is created automatically by app.js.
