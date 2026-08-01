@@ -110,6 +110,15 @@ const inactiveStaffCount =
 const staffManagerMessage =
   document.getElementById("staffManagerMessage");
 
+const staffOperationStatus =
+  document.getElementById("staffOperationStatus");
+
+const staffOperationStatusText =
+  document.getElementById("staffOperationStatusText");
+
+const staffToastRegion =
+  document.getElementById("staffToastRegion");
+
 const managerLoginModal =
   document.getElementById("managerLoginModal");
 
@@ -137,6 +146,9 @@ const managerSignOutBtn =
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
+let staffOperationBusy = false;
+let staffStatusResetTimer = null;
+let staffToastTimer = null;
 
 /* =====================================================
    LOCAL STORAGE KEYS
@@ -1368,6 +1380,133 @@ function setStaffManagerMessage(message, isError = false) {
   staffManagerMessage.classList.toggle("error", isError);
 }
 
+function setStaffOperationStatus(state, message) {
+  clearTimeout(staffStatusResetTimer);
+
+  staffOperationStatus.classList.remove(
+    "is-ready",
+    "is-loading",
+    "is-success",
+    "is-error"
+  );
+
+  staffOperationStatus.classList.add(`is-${state}`);
+  staffOperationStatusText.textContent = message;
+
+  const icon = staffOperationStatus.querySelector(".staff-operation-icon");
+  icon.textContent = state === "error" ? "!" : state === "loading" ? "" : "✓";
+}
+
+function scheduleStaffStatusReady(delay = 1800) {
+  clearTimeout(staffStatusResetTimer);
+  staffStatusResetTimer = setTimeout(() => {
+    if (!staffOperationBusy && !staffModal.hidden) {
+      setStaffOperationStatus("ready", "Ready");
+    }
+  }, delay);
+}
+
+function showStaffToast(message, type = "success") {
+  clearTimeout(staffToastTimer);
+  staffToastRegion.innerHTML = "";
+
+  const toast = document.createElement("div");
+  toast.className = `staff-toast is-${type}`;
+  toast.textContent = message;
+  staffToastRegion.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("is-visible"));
+
+  staffToastTimer = setTimeout(() => {
+    toast.classList.remove("is-visible");
+    setTimeout(() => toast.remove(), 220);
+  }, 2200);
+}
+
+function setStaffManagerBusy(busy, activeButton = null, busyText = "Working…") {
+  staffOperationBusy = busy;
+  staffModal.classList.toggle("is-busy", busy);
+
+  const controls = staffModal.querySelectorAll(
+    "button:not(#closeStaffModalBtn):not(#managerSignOutBtn), input"
+  );
+
+  controls.forEach((control) => {
+    if (busy) {
+      control.dataset.wasDisabled = String(control.disabled);
+      control.disabled = true;
+    } else {
+      control.disabled = control.dataset.wasDisabled === "true";
+      delete control.dataset.wasDisabled;
+    }
+  });
+
+  if (activeButton) {
+    if (busy) {
+      activeButton.dataset.originalText = activeButton.textContent;
+      activeButton.textContent = busyText;
+      activeButton.disabled = true;
+    } else {
+      activeButton.textContent = activeButton.dataset.originalText || activeButton.textContent;
+      delete activeButton.dataset.originalText;
+    }
+  }
+}
+
+function highlightStaffRow(id, className) {
+  requestAnimationFrame(() => {
+    const row = staffModal.querySelector(`[data-staff-id="${CSS.escape(String(id))}"]`);
+    if (row) {
+      row.classList.add(className);
+      setTimeout(() => row.classList.remove(className), 1300);
+    }
+  });
+}
+
+async function runStaffOperation({
+  busyMessage,
+  successMessage,
+  button = null,
+  busyText = "Working…",
+  action,
+  highlightId = null,
+  highlightClass = "staff-highlight-added"
+}) {
+  if (staffOperationBusy) {
+    return null;
+  }
+
+  setStaffManagerMessage("");
+  setStaffOperationStatus("loading", busyMessage);
+  setStaffManagerBusy(true, button, busyText);
+
+  try {
+    const result = await action();
+    await renderStaffManager({ showLoading: false });
+    await load();
+
+    setStaffOperationStatus("success", successMessage);
+    showStaffToast(`✓ ${successMessage}`, "success");
+
+    const id = highlightId ?? result?.id;
+    if (id) {
+      highlightStaffRow(id, highlightClass);
+    }
+
+    scheduleStaffStatusReady();
+    return result;
+  } catch (error) {
+    console.error(error);
+    const message = error.message || "Unable to complete the request.";
+    setStaffManagerMessage(message, true);
+    setStaffOperationStatus("error", message);
+    showStaffToast(`⚠ ${message}`, "error");
+    return null;
+  } finally {
+    setStaffManagerBusy(false, button);
+  }
+}
+
 function createStaffManagerRow(member, index) {
   const row = document.createElement("div");
   row.className = "staff-manage-row";
@@ -1425,15 +1564,19 @@ function createStaffManagerRow(member, index) {
           return;
         }
 
-        try {
-          await save();
-          await StaffStorage.rename(member.id, newName);
-          setStaffManagerMessage("Staff name updated.");
-          await refreshStaffAfterChange();
-        } catch (error) {
-          console.error(error);
-          setStaffManagerMessage(error.message, true);
-        }
+        await runStaffOperation({
+          busyMessage: `Renaming ${member.name}…`,
+          successMessage: `${newName} renamed successfully`,
+          button: saveButton,
+          busyText: "Saving…",
+          highlightId: member.id,
+          highlightClass: "staff-highlight-renamed",
+          action: async () => {
+            await save();
+            await StaffStorage.rename(member.id, newName);
+            return { id: member.id };
+          }
+        });
       });
     });
 
@@ -1451,15 +1594,16 @@ function createStaffManagerRow(member, index) {
         return;
       }
 
-      try {
-        await save();
-        await StaffStorage.setActive(member.id, false);
-        setStaffManagerMessage(`${member.name} deactivated.`);
-        await refreshStaffAfterChange();
-      } catch (error) {
-        console.error(error);
-        setStaffManagerMessage(error.message, true);
-      }
+      await runStaffOperation({
+        busyMessage: `Deactivating ${member.name}…`,
+        successMessage: `${member.name} deactivated`,
+        button: deactivateButton,
+        busyText: "Deactivating…",
+        action: async () => {
+          await save();
+          await StaffStorage.setActive(member.id, false);
+        }
+      });
     });
 
     actions.append(renameButton, deactivateButton);
@@ -1470,14 +1614,18 @@ function createStaffManagerRow(member, index) {
     reactivateButton.textContent = "Reactivate";
 
     reactivateButton.addEventListener("click", async () => {
-      try {
-        await StaffStorage.setActive(member.id, true);
-        setStaffManagerMessage(`${member.name} reactivated.`);
-        await refreshStaffAfterChange();
-      } catch (error) {
-        console.error(error);
-        setStaffManagerMessage(error.message, true);
-      }
+      await runStaffOperation({
+        busyMessage: `Reactivating ${member.name}…`,
+        successMessage: `${member.name} reactivated`,
+        button: reactivateButton,
+        busyText: "Reactivating…",
+        highlightId: member.id,
+        highlightClass: "staff-highlight-reactivated",
+        action: async () => {
+          await StaffStorage.setActive(member.id, true);
+          return { id: member.id };
+        }
+      });
     });
 
     actions.appendChild(reactivateButton);
@@ -1532,9 +1680,17 @@ async function requireManagerSession() {
   return false;
 }
 
-async function renderStaffManager() {
-  activeStaffList.innerHTML = "";
-  inactiveStaffList.innerHTML = "";
+async function renderStaffManager({ showLoading = true } = {}) {
+  activeStaffList.innerHTML = showLoading
+    ? '<div class="staff-list-loading">Loading staff…</div>'
+    : "";
+  inactiveStaffList.innerHTML = showLoading
+    ? '<div class="staff-list-loading">Loading staff…</div>'
+    : "";
+
+  if (showLoading) {
+    setStaffOperationStatus("loading", "Loading staff…");
+  }
 
   const allStaff = await StaffStorage.loadAll();
   const active = allStaff.filter((member) => member.active !== false);
@@ -1563,6 +1719,10 @@ async function renderStaffManager() {
       );
     });
   }
+
+  if (showLoading) {
+    setStaffOperationStatus("ready", "Ready");
+  }
 }
 
 async function refreshStaffAfterChange() {
@@ -1572,6 +1732,7 @@ async function refreshStaffAfterChange() {
 
 async function showStaffModal() {
   setStaffManagerMessage("");
+  setStaffOperationStatus("loading", "Loading staff…");
   staffModal.hidden = false;
   document.body.classList.add("staff-modal-open");
 
@@ -1661,6 +1822,7 @@ managerSignOutBtn.addEventListener("click", async () => {
   }
 
   try {
+    setStaffOperationStatus("loading", "Signing out…");
     const { error } = await db.auth.signOut();
 
     if (error) {
@@ -1704,16 +1866,23 @@ addStaffForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  try {
-    await save();
-    await StaffStorage.add(name);
+  const addButton = addStaffForm.querySelector('button[type="submit"]');
+
+  const added = await runStaffOperation({
+    busyMessage: `Adding ${name}…`,
+    successMessage: `${name} added`,
+    button: addButton,
+    busyText: "Adding…",
+    highlightClass: "staff-highlight-added",
+    action: async () => {
+      await save();
+      return StaffStorage.add(name);
+    }
+  });
+
+  if (added) {
     newStaffName.value = "";
-    setStaffManagerMessage(`${name} added.`);
-    await refreshStaffAfterChange();
     newStaffName.focus();
-  } catch (error) {
-    console.error(error);
-    setStaffManagerMessage(error.message, true);
   }
 });
 

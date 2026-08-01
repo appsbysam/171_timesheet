@@ -1166,3 +1166,162 @@ body.staff-modal-open {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   STAFF OPERATION STATUS AND TOASTS
+   ===================================================== */
+
+.staff-operation-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid #b8d8c0;
+  border-radius: 10px;
+  background: #edf7ef;
+  color: #246537;
+  font-size: 13px;
+  font-weight: 900;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.staff-operation-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border-radius: 50%;
+  background: currentColor;
+  color: #fff;
+  font-size: 12px;
+}
+
+.staff-operation-status.is-loading {
+  border-color: #aac7d7;
+  background: #edf5f9;
+  color: #315a72;
+}
+
+.staff-operation-status.is-loading .staff-operation-icon {
+  background: transparent;
+  border: 3px solid rgba(49, 90, 114, .25);
+  border-top-color: #315a72;
+  animation: staffStatusSpin .75s linear infinite;
+  color: transparent;
+}
+
+.staff-operation-status.is-success {
+  border-color: #8fc69b;
+  background: #e8f7eb;
+  color: #17652a;
+}
+
+.staff-operation-status.is-error {
+  border-color: #e0a5a5;
+  background: #fff0f0;
+  color: #9b1c1c;
+}
+
+@keyframes staffStatusSpin {
+  to { transform: rotate(360deg); }
+}
+
+.staff-toast-region {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.staff-toast {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: min(92%, 430px);
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: #17652a;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.22);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -14px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.staff-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.staff-toast.is-error { background: #a61d24; }
+.staff-toast.is-info { background: #315a72; }
+
+.staff-list-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 70px;
+  padding: 14px;
+  border: 1px dashed #aac7d7;
+  border-radius: 9px;
+  background: #f4f9fc;
+  color: #315a72;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.staff-list-loading::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(49,90,114,.25);
+  border-top-color: #315a72;
+  border-radius: 50%;
+  animation: staffStatusSpin .75s linear infinite;
+}
+
+.staff-modal.is-busy .staff-modal-dialog {
+  cursor: progress;
+}
+
+.staff-modal.is-busy button:disabled,
+.staff-modal.is-busy input:disabled {
+  opacity: .58;
+  cursor: wait;
+}
+
+.staff-manage-row.staff-highlight-added {
+  animation: staffAddedFlash 1.2s ease;
+}
+.staff-manage-row.staff-highlight-renamed {
+  animation: staffRenamedFlash 1.2s ease;
+}
+.staff-manage-row.staff-highlight-reactivated {
+  animation: staffAddedFlash 1.2s ease;
+}
+
+@keyframes staffAddedFlash {
+  0%, 100% { background: #fff; }
+  30% { background: #dff6e4; border-color: #79b986; }
+}
+
+@keyframes staffRenamedFlash {
+  0%, 100% { background: #fff; }
+  30% { background: #e1f0fa; border-color: #7fb0cc; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-operation-status,
+  .staff-toast,
+  .staff-manage-row { transition: none; animation: none !important; }
+}
