@@ -1140,6 +1140,16 @@ function calculateRow(row) {
   row.dataset.minutes = total;
 
   row.querySelector(
+    ".primary-shift-total"
+  ).textContent =
+    formatDecimal(primary.minutes);
+
+  row.querySelector(
+    ".split-shift-total"
+  ).textContent =
+    formatDecimal(split.minutes);
+
+  row.querySelector(
     ".row-total"
   ).textContent =
     formatDecimal(total);

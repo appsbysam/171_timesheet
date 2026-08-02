@@ -1,0 +1,40 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.2.2
+Release Date: 2 August 2026
+====================================================
+
+IMPROVEMENTS
+------------
+• Rebuilt each employee row into a compact four-column layout.
+• Staff name, Split Shift button, Start, Finish and shift total now sit on one line.
+• Start and Finish fields now align directly under their column headings.
+• When a split shift is active, Shift 2, Remove Split Shift, Start, Finish and shift total sit on one line.
+• Added a separate total for Shift 1.
+• Added a separate total for Shift 2.
+• The combined daily total remains displayed underneath the two shift lines.
+• Reduced the vertical space used by split-shift entries.
+
+BUG FIXES
+---------
+• Fixed completed split-shift rows losing the standard green highlight.
+• Completed rows now use the same green background whether or not a split shift is active.
+• Removed the unintended alternate background colour from incomplete split-shift rows.
+• Corrected alignment between timesheet fields and the Name, Start, Finish and Total headings.
+
+VERSION MANAGEMENT
+------------------
+• Updated version.js to 2.2.2.
+• Updated manifest.json version metadata to 2.2.2.
+• Displayed version and cache-busting continue to update automatically from version.js.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• manifest.json
+• version.js
+• CHANGELOG-v2.2.2.txt
+
+====================================================
