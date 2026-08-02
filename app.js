@@ -827,15 +827,15 @@ function setSplitShiftVisible(row, visible, { clearValues = false } = {}) {
   const panel = row.querySelector(".split-shift-panel");
   const addButton = row.querySelector(".add-split-shift-btn");
   const removeButton = row.querySelector(".remove-split-shift-btn");
+  const totalWrap = row.querySelector(".row-total-wrap");
   const splitStart = row.querySelector(".split-start");
   const splitFinish = row.querySelector(".split-finish");
 
   panel.hidden = !visible;
   addButton.hidden = visible;
   removeButton.hidden = !visible;
-  row.classList.toggle("has-split-shift", visible);
-
-  if (!visible && clearValues) {
+  totalWrap.hidden = !visible;
+  row.classList.toggle("has-split-shift", visible);  if (!visible && clearValues) {
     splitStart.value = "";
     splitFinish.value = "";
   }
