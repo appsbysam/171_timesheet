@@ -1520,3 +1520,126 @@ body.staff-modal-open {
     margin-top: 14px;
   }
 }
+
+
+/* =====================================================
+   SPLIT SHIFT SUPPORT
+   ===================================================== */
+
+.shift-row {
+  position: relative;
+}
+
+.shift-entry {
+  display: contents;
+}
+
+.add-split-shift-btn {
+  grid-column: 1 / 4;
+  justify-self: start;
+  width: auto;
+  margin-top: 1px;
+  padding: 4px 8px;
+  border-color: #315a72;
+  background: #edf5f9;
+  color: #315a72;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.split-shift-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.12fr 1fr 1fr 0.72fr;
+  gap: 5px;
+  align-items: center;
+  margin-top: 3px;
+  padding-top: 5px;
+  border-top: 1px dashed #aaa;
+}
+
+.split-shift-panel[hidden] {
+  display: none !important;
+}
+
+.split-shift-label {
+  overflow: hidden;
+  color: #555;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.split-shift-panel select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 2px 1px;
+  border: 1px solid #999;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 11px;
+}
+
+.remove-split-shift-btn {
+  height: 34px;
+  padding: 3px;
+  border-color: #9c1e1e;
+  background: #fff0f0;
+  color: #9c1e1e;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.shift-row.has-split-shift {
+  background: #f7fbfd;
+}
+
+@media (max-width: 460px) {
+  .split-shift-panel {
+    grid-template-columns: 1.08fr 0.95fr 0.95fr 0.68fr;
+    gap: 3px;
+  }
+
+  .split-shift-panel select {
+    padding: 1px 0;
+    font-size: 10px;
+  }
+
+  .split-shift-label,
+  .remove-split-shift-btn,
+  .add-split-shift-btn {
+    font-size: 8px;
+  }
+}
+
+@media print {
+  .shift-row.has-split-shift {
+    padding-bottom: 3px;
+  }
+
+  .split-shift-panel {
+    display: grid !important;
+    grid-template-columns: 1.12fr 1fr 1fr 0.72fr;
+    margin-top: 1px;
+    padding-top: 2px;
+    border-top: 1px dashed #aaa;
+  }
+
+  .split-shift-panel select {
+    height: 24px;
+    border: 0;
+    font-size: 9px;
+  }
+
+  .split-shift-label {
+    font-size: 8px;
+  }
+
+  .remove-split-shift-btn,
+  .add-split-shift-btn {
+    display: none !important;
+  }
+}

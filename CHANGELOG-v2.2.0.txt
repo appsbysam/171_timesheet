@@ -1,0 +1,39 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.2.0
+Release Date: 2 August 2026
+====================================================
+
+NEW FEATURES
+------------
+• Added optional split-shift support for each employee on each day.
+• Staff can tap “+ Split Shift” to enter one additional Start and Finish time.
+• Staff can remove the second shift using the Remove button.
+• Daily totals automatically combine the first and second shifts.
+• Employee weekly totals and the overall week total include split-shift hours.
+• Split shifts are included when printing or saving as PDF.
+
+DATA AND COMPATIBILITY
+----------------------
+• Existing single-shift records remain fully compatible.
+• No Supabase database migration is required.
+• Second-shift details are stored safely within the existing timesheet metadata.
+• Historical weeks without split shifts continue to load normally.
+
+VERSION MANAGEMENT
+------------------
+• Added version.js as the single source of truth for the application version.
+• The displayed version number now reads automatically from version.js.
+• CSS and JavaScript cache-busting now use the version from version.js.
+• Future releases should always update version.js and the changelog.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• manifest.json
+• version.js
+• CHANGELOG-v2.2.0.txt
+
+====================================================

@@ -37,8 +37,14 @@
     sizes="180x180"
     href="apple-touch-icon.png"
   />
-
-  <link rel="stylesheet" href="styles.css?v=2.1.1" />
+  <script src="version.js"></script>
+  <script>
+    document.write(
+      '<link rel="stylesheet" href="styles.css?v=' +
+      encodeURIComponent(window.APP_VERSION) +
+      '">'
+    );
+  </script>
 </head>
 
 <body>
@@ -442,15 +448,45 @@
 
       <strong class="employee-name"></strong>
 
-      <select
-        class="start"
-        aria-label="Start time"
-      ></select>
+      <div class="shift-entry shift-primary">
+        <select
+          class="start"
+          aria-label="Start time"
+        ></select>
 
-      <select
-        class="finish"
-        aria-label="Finish time"
-      ></select>
+        <select
+          class="finish"
+          aria-label="Finish time"
+        ></select>
+      </div>
+
+      <div class="split-shift-panel no-print" hidden>
+        <span class="split-shift-label">Split shift</span>
+
+        <select
+          class="split-start"
+          aria-label="Split shift start time"
+        ></select>
+
+        <select
+          class="split-finish"
+          aria-label="Split shift finish time"
+        ></select>
+
+        <button
+          type="button"
+          class="remove-split-shift-btn"
+        >
+          Remove
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="add-split-shift-btn no-print"
+      >
+        + Split Shift
+      </button>
 
       <output class="row-total">
         0.00
@@ -470,7 +506,12 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script src="app.js?v=2.1.1"></script>
+  <script>
+    document.write(
+      '<script src="app.js?v=' +
+      encodeURIComponent(window.APP_VERSION) +
+      '"><\/script>'
+    );
+  </script>
 </body>
 </html>

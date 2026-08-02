@@ -515,7 +515,15 @@ function formHasClearableData() {
   const hasShiftData = [...document.querySelectorAll(".shift-row")].some((row) => {
     const start = row.querySelector(".start")?.value;
     const finish = row.querySelector(".finish")?.value;
-    return Boolean(start || finish);
+    const splitStart = row.querySelector(".split-start")?.value;
+    const splitFinish = row.querySelector(".split-finish")?.value;
+
+    return Boolean(
+      start ||
+      finish ||
+      splitStart ||
+      splitFinish
+    );
   });
 
   const managerNotes =
@@ -639,7 +647,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = "Version 2.1.2";
+  version.textContent = `Version ${window.APP_VERSION || "2.2.0"}`;
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -815,6 +823,22 @@ function populateSelect(
    DYNAMIC TIMESHEET BUILDING
    ===================================================== */
 
+function setSplitShiftVisible(row, visible, { clearValues = false } = {}) {
+  const panel = row.querySelector(".split-shift-panel");
+  const addButton = row.querySelector(".add-split-shift-btn");
+  const splitStart = row.querySelector(".split-start");
+  const splitFinish = row.querySelector(".split-finish");
+
+  panel.hidden = !visible;
+  addButton.hidden = visible;
+  row.classList.toggle("has-split-shift", visible);
+
+  if (!visible && clearValues) {
+    splitStart.value = "";
+    splitFinish.value = "";
+  }
+}
+
 function createEmployeeRow(
   member,
   day
@@ -836,20 +860,36 @@ function createEmployeeRow(
   const finish =
     node.querySelector(".finish");
 
+  const splitStart =
+    node.querySelector(".split-start");
+
+  const splitFinish =
+    node.querySelector(".split-finish");
+
+  const addSplitButton =
+    node.querySelector(".add-split-shift-btn");
+
+  const removeSplitButton =
+    node.querySelector(".remove-split-shift-btn");
+
   row.dataset.employee = member.name;
   row.dataset.employeeId = member.id;
 
   nameElement.textContent = member.name;
 
-  populateSelect(
-    start,
-    getTimeOptions(day, "start")
-  );
+  [start, splitStart].forEach((select) => {
+    populateSelect(
+      select,
+      getTimeOptions(day, "start")
+    );
+  });
 
-  populateSelect(
-    finish,
-    getTimeOptions(day, "finish")
-  );
+  [finish, splitFinish].forEach((select) => {
+    populateSelect(
+      select,
+      getTimeOptions(day, "finish")
+    );
+  });
 
   start.setAttribute(
     "aria-label",
@@ -859,6 +899,16 @@ function createEmployeeRow(
   finish.setAttribute(
     "aria-label",
     `${day} ${member.name} finish`
+  );
+
+  splitStart.setAttribute(
+    "aria-label",
+    `${day} ${member.name} split shift start`
+  );
+
+  splitFinish.setAttribute(
+    "aria-label",
+    `${day} ${member.name} split shift finish`
   );
 
   row
@@ -874,6 +924,28 @@ function createEmployeeRow(
         }
       );
     });
+
+  addSplitButton.addEventListener("click", () => {
+    setSplitShiftVisible(row, true);
+    calculateRow(row);
+    updateClearButtonState();
+    scheduleSave();
+    splitStart.focus();
+  });
+
+  removeSplitButton.addEventListener("click", () => {
+    setSplitShiftVisible(
+      row,
+      false,
+      { clearValues: true }
+    );
+    calculateRow(row);
+    calculateTotals();
+    updateClearButtonState();
+    scheduleSave();
+  });
+
+  setSplitShiftVisible(row, false);
 
   return node;
 }
@@ -996,50 +1068,72 @@ function formatDecimal(totalMinutes) {
   ).toFixed(2);
 }
 
-function calculateRow(row) {
-  const startSelect =
-    row.querySelector(".start");
+function calculateShiftMinutes(startSelect, finishSelect) {
+  const start = minutes(startSelect.value);
+  const finish = minutes(finishSelect.value);
 
-  const finishSelect =
-    row.querySelector(".finish");
+  startSelect.classList.remove("invalid");
+  finishSelect.classList.remove("invalid");
 
-  const start =
-    minutes(startSelect.value);
-
-  const finish =
-    minutes(finishSelect.value);
-
-  let total = 0;
-
-  startSelect.classList.remove(
-    "invalid"
-  );
-
-  finishSelect.classList.remove(
-    "invalid"
-  );
-
-  if (
-    start !== null &&
-    finish !== null
-  ) {
-    total = finish - start;
-
-    if (
-      total < 0 ||
-      total > 630
-    ) {
-      startSelect.classList.add(
-        "invalid"
-      );
-
-      finishSelect.classList.add(
-        "invalid"
-      );
-
-      total = 0;
-    }
+  if (start === null && finish === null) {
+    return {
+      minutes: 0,
+      complete: false,
+      valid: true
+    };
   }
+
+  if (start === null || finish === null) {
+    return {
+      minutes: 0,
+      complete: false,
+      valid: true
+    };
+  }
+
+  const total = finish - start;
+
+  if (total < 0 || total > 630) {
+    startSelect.classList.add("invalid");
+    finishSelect.classList.add("invalid");
+
+    return {
+      minutes: 0,
+      complete: true,
+      valid: false
+    };
+  }
+
+  return {
+    minutes: total,
+    complete: true,
+    valid: true
+  };
+}
+
+function calculateRow(row) {
+  const primary =
+    calculateShiftMinutes(
+      row.querySelector(".start"),
+      row.querySelector(".finish")
+    );
+
+  const splitVisible =
+    row.classList.contains("has-split-shift");
+
+  const split = splitVisible
+    ? calculateShiftMinutes(
+        row.querySelector(".split-start"),
+        row.querySelector(".split-finish")
+      )
+    : {
+        minutes: 0,
+        complete: false,
+        valid: true
+      };
+
+  const total =
+    primary.minutes + split.minutes;
 
   row.dataset.minutes = total;
 
@@ -1050,9 +1144,12 @@ function calculateRow(row) {
 
   row.classList.toggle(
     "completed",
-    start !== null &&
-      finish !== null &&
-      finish >= start
+    primary.complete &&
+      primary.valid &&
+      (
+        !splitVisible ||
+        (split.complete && split.valid)
+      )
   );
 }
 
@@ -1152,6 +1249,33 @@ function updateWeekEnd() {
    MANAGER DETAILS
    ===================================================== */
 
+function collectSplitShiftMetadata() {
+  const splitShifts = {};
+
+  document
+    .querySelectorAll(".day-block")
+    .forEach((block) => {
+      block
+        .querySelectorAll(".shift-row.has-split-shift")
+        .forEach((row) => {
+          const key =
+            `${block.dataset.day}::${row.dataset.employee}`;
+
+          splitShifts[key] = {
+            start:
+              row.querySelector(".split-start")
+                .value || null,
+
+            finish:
+              row.querySelector(".split-finish")
+                .value || null
+          };
+        });
+    });
+
+  return splitShifts;
+}
+
 function managerMetadata() {
   return JSON.stringify({
     managerNotes:
@@ -1167,7 +1291,10 @@ function managerMetadata() {
     managerDate:
       document.getElementById(
         "managerDate"
-      ).value
+      ).value,
+
+    splitShifts:
+      collectSplitShiftMetadata()
   });
 }
 
@@ -1311,7 +1438,14 @@ function clearForm() {
 
   document
     .querySelectorAll(".shift-row")
-    .forEach(calculateRow);
+    .forEach((row) => {
+      setSplitShiftVisible(
+        row,
+        false,
+        { clearValues: true }
+      );
+      calculateRow(row);
+    });
 
   document.getElementById(
     "managerNotes"
@@ -1410,6 +1544,32 @@ function applyTimesheetData(data) {
       ".finish"
     ).value =
       record.finish_time || "";
+
+    const splitKey =
+      `${record.day}::${record.employee}`;
+
+    const splitShift =
+      metadata.splitShifts?.[splitKey];
+
+    if (splitShift) {
+      setSplitShiftVisible(row, true);
+
+      row.querySelector(
+        ".split-start"
+      ).value =
+        splitShift.start || "";
+
+      row.querySelector(
+        ".split-finish"
+      ).value =
+        splitShift.finish || "";
+    } else {
+      setSplitShiftVisible(
+        row,
+        false,
+        { clearValues: true }
+      );
+    }
 
     calculateRow(row);
   });
