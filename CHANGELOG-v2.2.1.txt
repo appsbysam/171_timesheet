@@ -1,0 +1,39 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.2.1
+Release Date: 2 August 2026
+====================================================
+
+IMPROVEMENTS
+------------
+• Moved the Add Split Shift button onto the same line as the staff member's name.
+• When a split shift is active, the Remove Split Shift button now appears beside the staff member's name.
+• Reorganised each employee row into a cleaner vertical layout:
+  - Staff name and split-shift action at the top
+  - Shift 1 times underneath
+  - Optional Shift 2 times underneath
+  - Daily total positioned at the bottom
+• Improved spacing and alignment on mobile screens.
+• Updated the print layout to match the new arrangement.
+
+BUG FIXES
+---------
+• Fixed the completed-shift green highlighting disappearing when a split shift was added.
+• Completed split-shift rows now retain the same green highlight as normal completed rows.
+
+VERSION MANAGEMENT
+------------------
+• Updated version.js to 2.2.1.
+• Updated manifest.json version metadata to 2.2.1.
+• The displayed version and cache-busting continue to update automatically from version.js.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• manifest.json
+• version.js
+• CHANGELOG-v2.2.1.txt
+
+====================================================

@@ -446,9 +446,28 @@
 
     <div class="shift-row">
 
-      <strong class="employee-name"></strong>
+      <div class="employee-row-header">
+        <strong class="employee-name"></strong>
+
+        <button
+          type="button"
+          class="add-split-shift-btn no-print"
+        >
+          + Split Shift
+        </button>
+
+        <button
+          type="button"
+          class="remove-split-shift-btn no-print"
+          hidden
+        >
+          Remove Split Shift
+        </button>
+      </div>
 
       <div class="shift-entry shift-primary">
+        <span class="shift-label">Shift 1</span>
+
         <select
           class="start"
           aria-label="Start time"
@@ -460,8 +479,8 @@
         ></select>
       </div>
 
-      <div class="split-shift-panel no-print" hidden>
-        <span class="split-shift-label">Split shift</span>
+      <div class="split-shift-panel" hidden>
+        <span class="split-shift-label">Shift 2</span>
 
         <select
           class="split-start"
@@ -472,25 +491,15 @@
           class="split-finish"
           aria-label="Split shift finish time"
         ></select>
-
-        <button
-          type="button"
-          class="remove-split-shift-btn"
-        >
-          Remove
-        </button>
       </div>
 
-      <button
-        type="button"
-        class="add-split-shift-btn no-print"
-      >
-        + Split Shift
-      </button>
+      <div class="row-total-wrap">
+        <span class="row-total-label">Total</span>
 
-      <output class="row-total">
-        0.00
-      </output>
+        <output class="row-total">
+          0.00
+        </output>
+      </div>
 
     </div>
 

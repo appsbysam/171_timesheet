@@ -1643,3 +1643,165 @@ body.staff-modal-open {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   SPLIT SHIFT LAYOUT POLISH — v2.2.1
+   ===================================================== */
+
+.shift-row {
+  display: block;
+  padding: 7px 8px;
+}
+
+.employee-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.employee-row-header .employee-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.employee-row-header .add-split-shift-btn,
+.employee-row-header .remove-split-shift-btn {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.employee-row-header .remove-split-shift-btn {
+  border-color: #9c1e1e;
+  background: #fff0f0;
+  color: #9c1e1e;
+}
+
+.shift-entry,
+.split-shift-panel {
+  display: grid;
+  grid-template-columns: 1.12fr 1fr 1fr;
+  gap: 5px;
+  align-items: center;
+}
+
+.shift-entry {
+  margin-top: 0;
+}
+
+.split-shift-panel {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed #aaa;
+}
+
+.shift-entry .shift-label,
+.split-shift-label {
+  overflow: hidden;
+  color: #555;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.shift-entry select,
+.split-shift-panel select {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+}
+
+.row-total-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.row-total-label {
+  color: #555;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.row-total-wrap .row-total {
+  width: 92px;
+  min-width: 92px;
+}
+
+/* Keep the completed green highlight even when a split shift is active. */
+.shift-row.completed,
+.shift-row.completed.has-split-shift {
+  background: #d9f4df;
+  border-color: #79b986;
+}
+
+.shift-row.has-split-shift:not(.completed) {
+  background: #f7fbfd;
+}
+
+@media (max-width: 460px) {
+  .shift-entry,
+  .split-shift-panel {
+    grid-template-columns: 1.08fr 0.95fr 0.95fr;
+    gap: 3px;
+  }
+
+  .employee-row-header .add-split-shift-btn,
+  .employee-row-header .remove-split-shift-btn {
+    padding: 5px 7px;
+    font-size: 8px;
+  }
+
+  .row-total-wrap .row-total {
+    width: 82px;
+    min-width: 82px;
+  }
+}
+
+@media print {
+  .employee-row-header {
+    margin-bottom: 2px;
+  }
+
+  .shift-entry,
+  .split-shift-panel {
+    display: grid !important;
+    grid-template-columns: 1.12fr 1fr 1fr;
+    gap: 3px;
+  }
+
+  .split-shift-panel[hidden] {
+    display: none !important;
+  }
+
+  .shift-entry select,
+  .split-shift-panel select {
+    height: 24px;
+    border: 0;
+    font-size: 9px;
+  }
+
+  .row-total-wrap {
+    margin-top: 2px;
+    padding-top: 2px;
+  }
+
+  .row-total-wrap .row-total {
+    width: 72px;
+    min-width: 72px;
+  }
+}

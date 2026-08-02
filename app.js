@@ -826,11 +826,13 @@ function populateSelect(
 function setSplitShiftVisible(row, visible, { clearValues = false } = {}) {
   const panel = row.querySelector(".split-shift-panel");
   const addButton = row.querySelector(".add-split-shift-btn");
+  const removeButton = row.querySelector(".remove-split-shift-btn");
   const splitStart = row.querySelector(".split-start");
   const splitFinish = row.querySelector(".split-finish");
 
   panel.hidden = !visible;
   addButton.hidden = visible;
+  removeButton.hidden = !visible;
   row.classList.toggle("has-split-shift", visible);
 
   if (!visible && clearValues) {
