@@ -1,0 +1,23 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.2.3
+Release Date: 2 August 2026
+====================================================
+
+IMPROVEMENTS
+------------
+• Hidden the combined Total row when no split shift is active.
+• For normal single shifts, the shift total is now the only total displayed.
+• The combined Total row appears only after a split shift is added.
+• Removing a split shift hides the combined Total row again.
+• Reduced unnecessary vertical space for standard shifts.
+
+FILES CHANGED
+-------------
+• index.html
+• app.js
+• manifest.json
+• version.js
+• CHANGELOG-v2.2.3.txt
+
+====================================================
