@@ -1,0 +1,23 @@
+====================================================
+171 Café Staff Timesheet
+Version 2.2.4
+Release Date: 2 August 2026
+====================================================
+
+BUG FIXES
+---------
+• Fixed the combined Total row remaining visible when no split shift was active.
+• Added a definitive CSS rule so elements using the hidden attribute cannot be forced visible by the row layout styles.
+• Confirmed that the combined Total row appears only when a split shift is added.
+• Confirmed that removing a split shift hides the combined Total row again.
+• Cleaned up the split-shift visibility function formatting in app.js.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• version.js
+• CHANGELOG-v2.2.4.txt
+
+====================================================

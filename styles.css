@@ -1987,3 +1987,11 @@ body.staff-modal-open {
     display: none !important;
   }
 }
+
+/* =====================================================
+   HIDE COMBINED TOTAL WITHOUT SPLIT SHIFT — v2.2.4
+   ===================================================== */
+
+.row-total-wrap[hidden] {
+  display: none !important;
+}

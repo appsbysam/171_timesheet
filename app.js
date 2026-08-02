@@ -647,7 +647,7 @@ function addModeBadge() {
 
   const version = document.createElement("div");
   version.className = "app-version";
-  version.textContent = `Version ${window.APP_VERSION || "2.2.0"}`;
+  version.textContent = `Version ${window.APP_VERSION || "2.2.4"}`;
 
   wrapper.appendChild(badge);
   wrapper.appendChild(version);
@@ -835,7 +835,9 @@ function setSplitShiftVisible(row, visible, { clearValues = false } = {}) {
   addButton.hidden = visible;
   removeButton.hidden = !visible;
   totalWrap.hidden = !visible;
-  row.classList.toggle("has-split-shift", visible);  if (!visible && clearValues) {
+  row.classList.toggle("has-split-shift", visible);
+
+  if (!visible && clearValues) {
     splitStart.value = "";
     splitFinish.value = "";
   }
