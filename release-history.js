@@ -1,5 +1,14 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.0.9",
+    date: "4 August 2026",
+    changes: [
+      "Renamed the split-shift removal button to -Remove Split.",
+      "Matched the Remove Split button dimensions to the + Split Shift button.",
+      "Applied the matching dimensions on both desktop and mobile."
+    ]
+  },
+  {
     version: "3.0.8",
     date: "4 August 2026",
     changes: [

@@ -1,5 +1,15 @@
 # 171 Café Staff Timesheet
 
+## Version 3.0.9
+Released: 4 August 2026
+
+### Changed
+- Renamed **Remove Split Shift** to **-Remove Split**.
+- Matched the **-Remove Split** button dimensions to the **+ Split Shift** button.
+- Applied the same matched sizing on desktop and mobile.
+
+---
+
 ## Version 3.0.8
 Released: 4 August 2026
 
@@ -126,7 +136,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.0.8**
+-   Current production version: **3.0.9**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.
