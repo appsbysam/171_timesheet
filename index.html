@@ -63,6 +63,136 @@
       '">'
     );
   </script>
+  <script>
+    /*
+      Checks the deployed version.js without using the browser cache.
+      If a newer build is found, a small updating message is shown
+      and the page reloads once using a fresh URL.
+    */
+    (function () {
+      const reloadKey =
+        "171-timesheet-version-refresh";
+
+      function showVersionUpdateNotice() {
+        const notice =
+          document.createElement("div");
+
+        notice.className =
+          "version-update-notice";
+
+        notice.setAttribute(
+          "role",
+          "status"
+        );
+
+        notice.setAttribute(
+          "aria-live",
+          "assertive"
+        );
+
+        notice.innerHTML = `
+          <div class="version-update-spinner"></div>
+          <span>
+            A new version is available. Loading now…
+          </span>
+        `;
+
+        document.body.appendChild(notice);
+      }
+
+      async function checkForNewVersion() {
+        try {
+          const response =
+            await fetch(
+              "version.js?version-check=" +
+                Date.now(),
+              {
+                cache: "no-store"
+              }
+            );
+
+          if (!response.ok) {
+            return;
+          }
+
+          const source =
+            await response.text();
+
+          const match =
+            source.match(
+              /window\.APP_VERSION\s*=\s*["']([^"']+)["']/
+            );
+
+          if (!match) {
+            return;
+          }
+
+          const deployedVersion =
+            match[1];
+
+          if (
+            deployedVersion ===
+            window.APP_VERSION
+          ) {
+            sessionStorage.removeItem(
+              reloadKey
+            );
+            return;
+          }
+
+          const previousAttempt =
+            sessionStorage.getItem(
+              reloadKey
+            );
+
+          showVersionUpdateNotice();
+
+          if (
+            previousAttempt ===
+            deployedVersion
+          ) {
+            return;
+          }
+
+          sessionStorage.setItem(
+            reloadKey,
+            deployedVersion
+          );
+
+          window.setTimeout(() => {
+            const url =
+              new URL(
+                window.location.href
+              );
+
+            url.searchParams.set(
+              "app-version",
+              deployedVersion
+            );
+
+            url.searchParams.set(
+              "refresh",
+              Date.now()
+            );
+
+            window.location.replace(
+              url.toString()
+            );
+          }, 1100);
+        } catch (error) {
+          console.warn(
+            "Version check unavailable:",
+            error
+          );
+        }
+      }
+
+      window.addEventListener(
+        "DOMContentLoaded",
+        checkForNewVersion
+      );
+    })();
+  </script>
 </head>
 
 <body>

@@ -1,5 +1,15 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.0.1",
+    date: "3 August 2026",
+    changes: [
+      "Added an automatic deployed-version check when the app loads.",
+      "Shows a small loading notice when a newer version is detected.",
+      "Automatically refreshes the app once to load the new deployment.",
+      "The version check bypasses browser cache and works in both DEV and production."
+    ]
+  },
+  {
     version: "3.0.0",
     date: "3 August 2026",
     changes: [

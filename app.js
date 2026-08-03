@@ -1113,7 +1113,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.0"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.1"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
