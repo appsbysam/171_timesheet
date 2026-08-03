@@ -2878,3 +2878,39 @@ body.staff-modal-open {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   TODAY VISIBILITY — v3.0.3
+   ===================================================== */
+
+.week-nav .week-nav-today[hidden] {
+  display: none !important;
+}
+
+/* Current week: only Previous and Next, equal width. */
+.week-nav:has(.week-nav-today[hidden]) {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+}
+
+/* Other weeks: Previous, Today and Next. */
+.week-nav:not(:has(.week-nav-today[hidden])) {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+}
+
+/* Preserve the established Previous and Next button dimensions. */
+.week-nav .week-nav-previous,
+.week-nav .week-nav-next {
+  min-height: 46px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 600px) {
+  .week-nav .week-nav-previous,
+  .week-nav .week-nav-next {
+    min-height: 40px;
+    padding: 6px 5px;
+  }
+}

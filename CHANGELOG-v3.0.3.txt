@@ -1,0 +1,37 @@
+====================================================
+171 Café Staff Timesheet
+Version 3.0.3
+Release Date: 3 August 2026
+====================================================
+
+TODAY BUTTON
+------------
+• Today is hidden completely while viewing the current week.
+• Today appears only when viewing a past or future week.
+• When visible, Today returns directly to the current week.
+
+NAVIGATION LAYOUT
+-----------------
+• On the current week, only Previous and Next are shown.
+• Previous and Next remain the same established size.
+• Their height, padding and visual styling have not been reduced.
+• Away from the current week, the navigation displays Previous, Today and Next.
+• The row changes cleanly between two and three equal columns.
+
+DYNAMIC ENVIRONMENT VERSIONING
+------------------------------
+• Production displays Version 3.0.3.
+• DEV displays Version 3.0.3-dev.
+• config.js continues to apply the environment suffix automatically.
+
+FILES CHANGED
+-------------
+• app.js
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v3.0.3.txt
+
+====================================================
