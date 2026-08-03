@@ -1,0 +1,47 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.3.1-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW
+---
+• Added config.js as the single environment configuration file.
+• Added automatic DEV/Production detection based on the repository URL.
+• Added separate DEV and Production PWA manifest files.
+• Added one-command manual environment switching for controlled testing.
+• Added an automatic mode that removes any browser override.
+
+IMPROVEMENTS
+------------
+• app.js no longer contains hard-coded DEV database details.
+• The same app.js, index.html and styles.css can now be used in both repositories.
+• DEV badges, titles and mode labels are now controlled by config.js.
+• The correct Supabase project is selected automatically.
+• The correct installable-app name is selected automatically.
+
+ENVIRONMENT COMMANDS
+--------------------
+• switchTimesheetEnvironment("development")
+• switchTimesheetEnvironment("production")
+• switchTimesheetEnvironment("auto")
+
+SAFETY
+------
+• The DEV repository automatically connects to DEV Supabase.
+• The production repository automatically connects to production Supabase.
+• Manual overrides are browser-specific and can be cleared using "auto".
+
+FILES CHANGED OR ADDED
+----------------------
+• app.js
+• index.html
+• styles.css
+• version.js
+• config.js
+• manifest-dev.json
+• manifest-production.json
+• ENVIRONMENT-SWITCHING.txt
+• CHANGELOG-v2.3.1-dev.txt
+
+====================================================

@@ -1,0 +1,41 @@
+ONE7ONE TIMESHEET — ENVIRONMENT SWITCHING
+===========================================
+
+NORMAL USE
+----------
+No manual switching is required.
+
+The app automatically uses:
+• DEV configuration on /DEV-171-Timesheet/
+• Production configuration on the live repository URL
+
+MANUAL ONE-COMMAND SWITCH
+-------------------------
+Open the browser Developer Console and run one command:
+
+Development:
+switchTimesheetEnvironment("development")
+
+Production:
+switchTimesheetEnvironment("production")
+
+Return to automatic detection:
+switchTimesheetEnvironment("auto")
+
+The selected override is stored only in that browser.
+Use "auto" after testing to restore normal automatic behaviour.
+
+PROMOTING DEV TO PRODUCTION
+---------------------------
+Copy the shared files from DEV to Production:
+
+• app.js
+• index.html
+• styles.css
+• version.js
+• config.js
+• manifest-dev.json
+• manifest-production.json
+
+No Supabase URLs or DEV labels need to be recoded.
+The repository URL automatically selects the correct environment.
