@@ -39,20 +39,27 @@
   />
   <script src="config.js"></script>
   <script src="version.js"></script>
+  <script src="release-history.js"></script>
   <script>
+    window.APP_DISPLAY_VERSION =
+      window.APP_VERSION +
+      (window.APP_CONFIG.versionSuffix || "");
+
     document
       .getElementById("appManifest")
       .setAttribute(
         "href",
         window.APP_CONFIG.manifestFile +
           "?v=" +
-          encodeURIComponent(window.APP_VERSION)
+          encodeURIComponent(
+            window.APP_DISPLAY_VERSION
+          )
       );
   </script>
   <script>
     document.write(
       '<link rel="stylesheet" href="styles.css?v=' +
-      encodeURIComponent(window.APP_VERSION) +
+      encodeURIComponent(window.APP_DISPLAY_VERSION) +
       '">'
     );
   </script>
@@ -106,15 +113,79 @@
         <button
           type="button"
           id="previousWeekBtn"
+          class="week-nav-btn week-nav-previous"
+          aria-label="Previous week"
         >
-          ← Previous Week
+          <svg
+            class="week-nav-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M14.5 5.5 8 12l6.5 6.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>Previous</span>
+        </button>
+
+        <button
+          type="button"
+          id="goToCurrentWeekBtn"
+          class="week-nav-btn week-nav-today"
+          aria-label="Go to current week"
+        >
+          <svg
+            class="week-nav-icon week-nav-calendar-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <rect
+              x="4"
+              y="5.5"
+              width="16"
+              height="14"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M8 3.5v4M16 3.5v4M4 9.5h16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>Today</span>
         </button>
 
         <button
           type="button"
           id="nextWeekBtn"
+          class="week-nav-btn week-nav-next"
+          aria-label="Next week"
         >
-          Next Week →
+          <span>Next</span>
+          <svg
+            class="week-nav-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="m9.5 5.5 6.5 6.5-6.5 6.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </button>
 
       </div>
@@ -219,6 +290,120 @@
 
 
 
+
+
+    <div
+      id="rosterModal"
+      class="roster-modal no-print"
+      hidden
+    >
+      <div
+        class="roster-modal-backdrop"
+        data-close-roster
+      ></div>
+
+      <section
+        class="roster-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rosterTitle"
+      >
+        <div class="roster-header">
+          <div>
+            <h2 id="rosterTitle">Generated Roster</h2>
+            <p>Review the text before copying or sharing it.</p>
+          </div>
+
+          <button
+            id="closeRosterBtn"
+            class="roster-close"
+            type="button"
+            aria-label="Close generated roster"
+          >
+            ×
+          </button>
+        </div>
+
+        <textarea
+          id="rosterPreview"
+          class="roster-preview"
+          aria-label="Generated roster text"
+          spellcheck="false"
+        ></textarea>
+
+        <p
+          id="rosterMessage"
+          class="roster-message"
+          aria-live="polite"
+        ></p>
+
+        <div class="roster-actions">
+          <button
+            id="copyRosterBtn"
+            class="roster-copy-btn"
+            type="button"
+          >
+            Copy Text
+          </button>
+
+          <button
+            id="shareRosterBtn"
+            class="roster-share-btn"
+            type="button"
+          >
+            Share
+          </button>
+
+          <button
+            id="closeRosterActionBtn"
+            class="roster-cancel-btn"
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div
+      id="versionHistoryModal"
+      class="version-history-modal no-print"
+      hidden
+    >
+      <div
+        class="version-history-backdrop"
+        data-close-version-history
+      ></div>
+
+      <section
+        class="version-history-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="versionHistoryTitle"
+      >
+        <div class="version-history-header">
+          <div>
+            <h2 id="versionHistoryTitle">What’s New</h2>
+            <p id="versionHistoryCurrent"></p>
+          </div>
+
+          <button
+            id="closeVersionHistoryBtn"
+            class="version-history-close"
+            type="button"
+            aria-label="Close version history"
+          >
+            ×
+          </button>
+        </div>
+
+        <div
+          id="versionHistoryList"
+          class="version-history-list"
+        ></div>
+      </section>
+    </div>
+
     <div
       id="managerMenuModal"
       class="manager-menu-modal no-print"
@@ -254,6 +439,22 @@
         <div class="manager-menu-actions">
           <button id="managerMenuStaffBtn" type="button">
             👥 Manage Staff
+          </button>
+
+          <button
+            id="managerMenuCopyPreviousBtn"
+            class="manager-menu-copy-previous"
+            type="button"
+          >
+            Copy Previous Week
+          </button>
+
+          <button
+            id="managerMenuGenerateRosterBtn"
+            class="manager-menu-generate-roster"
+            type="button"
+          >
+            Generate Roster
           </button>
 
           <button
@@ -537,7 +738,7 @@
   <script>
     document.write(
       '<script src="app.js?v=' +
-      encodeURIComponent(window.APP_VERSION) +
+      encodeURIComponent(window.APP_DISPLAY_VERSION) +
       '"><\/script>'
     );
   </script>

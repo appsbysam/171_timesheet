@@ -1,0 +1,46 @@
+====================================================
+171 Café Staff Timesheet — Launch Build
+Base Version 3.0.0
+Release Date: 3 August 2026
+====================================================
+
+DYNAMIC VERSION MANAGEMENT
+--------------------------
+• version.js now stores one base version: 3.0.0.
+• config.js controls the environment suffix.
+• Production displays: Version 3.0.0
+• DEV displays: Version 3.0.0-dev
+• The same shared files can be uploaded to both repositories.
+• No manual recoding of DEV labels or version suffixes is required.
+• Cache-busting now uses the environment-aware display version.
+
+TODAY BUTTON
+------------
+• When viewing any week other than the current week, Today is vibrant green with white text and icon.
+• When viewing the current week, Today is a very light green with dark-green text and icon.
+• The current-week state remains disabled and visually inactive.
+
+DESKTOP DATE FIELD
+------------------
+• Slightly reduced date text on desktop/laptop screens so full dates fit cleanly.
+• Mobile sizing remains unchanged.
+
+LAUNCH STATUS
+-------------
+• Production manifest version: 3.0.0
+• DEV manifest version: 3.0.0-dev
+• Existing Generate Roster, Copy Previous Week, Manager Mode, split shifts and version history remain included.
+
+FILES CHANGED
+-------------
+• config.js
+• index.html
+• app.js
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v3.0.0.txt
+
+====================================================

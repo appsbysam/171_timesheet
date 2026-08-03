@@ -74,6 +74,9 @@ const weekStart =
 const weekEnd =
   document.getElementById("weekEnd");
 
+const goToCurrentWeekBtn =
+  document.getElementById("goToCurrentWeekBtn");
+
 const statusEl =
   document.getElementById("status");
 
@@ -122,6 +125,18 @@ const staffOperationStatusText =
 const staffToastRegion =
   document.getElementById("staffToastRegion");
 
+const versionHistoryModal =
+  document.getElementById("versionHistoryModal");
+
+const versionHistoryCurrent =
+  document.getElementById("versionHistoryCurrent");
+
+const versionHistoryList =
+  document.getElementById("versionHistoryList");
+
+const closeVersionHistoryBtn =
+  document.getElementById("closeVersionHistoryBtn");
+
 const managerCard =
   document.getElementById("managerCard");
 
@@ -136,6 +151,33 @@ const managerMenuStaffBtn =
 
 const managerMenuClearBtn =
   document.getElementById("managerMenuClearBtn");
+
+const managerMenuCopyPreviousBtn =
+  document.getElementById("managerMenuCopyPreviousBtn");
+
+const managerMenuGenerateRosterBtn =
+  document.getElementById("managerMenuGenerateRosterBtn");
+
+const rosterModal =
+  document.getElementById("rosterModal");
+
+const rosterPreview =
+  document.getElementById("rosterPreview");
+
+const rosterMessage =
+  document.getElementById("rosterMessage");
+
+const copyRosterBtn =
+  document.getElementById("copyRosterBtn");
+
+const shareRosterBtn =
+  document.getElementById("shareRosterBtn");
+
+const closeRosterBtn =
+  document.getElementById("closeRosterBtn");
+
+const closeRosterActionBtn =
+  document.getElementById("closeRosterActionBtn");
 
 const managerMenuSignOutBtn =
   document.getElementById("managerMenuSignOutBtn");
@@ -507,6 +549,403 @@ const StaffStorage = {
   }
 };
 
+function formatDateForMessage(dateString) {
+  const [year, month, day] =
+    dateString.split("-");
+
+  return `${day}/${month}/${year}`;
+}
+
+function addDaysToDateString(
+  dateString,
+  numberOfDays
+) {
+  const [year, month, day] =
+    dateString
+      .split("-")
+      .map(Number);
+
+  const date =
+    new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day
+      )
+    );
+
+  date.setUTCDate(
+    date.getUTCDate() + numberOfDays
+  );
+
+  return date
+    .toISOString()
+    .slice(0, 10);
+}
+
+function preparePreviousWeekRows(
+  previousRows,
+  destinationWeek
+) {
+  let previousMetadata = {};
+
+  try {
+    previousMetadata =
+      JSON.parse(
+        previousRows[0]?.notes || "{}"
+      );
+  } catch (error) {
+    console.warn(
+      "Unable to read previous-week metadata:",
+      error
+    );
+  }
+
+  const copiedMetadata =
+    JSON.stringify({
+      managerNotes: "",
+      managerName: "",
+      managerDate: "",
+      splitShifts:
+        previousMetadata.splitShifts || {}
+    });
+
+  return previousRows.map((row) => ({
+    week_start: destinationWeek,
+    employee: row.employee,
+    day: row.day,
+    start_time: row.start_time || null,
+    finish_time: row.finish_time || null,
+    hours: Number(row.hours || 0),
+    notes: copiedMetadata
+  }));
+}
+
+async function copyPreviousWeek() {
+  const destinationWeek =
+    weekStart.value;
+
+  if (!destinationWeek) {
+    return;
+  }
+
+  const sourceWeek =
+    addDaysToDateString(
+      destinationWeek,
+      -7
+    );
+
+  if (formHasClearableData()) {
+    const confirmed =
+      await showConfirmDialog({
+        title: "Warning",
+        message:
+          "There are values entered for the current week. This will override those values. Are you sure you want to continue?",
+        confirmText: "Continue"
+      });
+
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  try {
+    closeManagerMenu();
+
+    setSaveButtonState("saving");
+
+    setStatus(
+      LOCAL_MODE
+        ? "Copying previous local week…"
+        : "Copying previous cloud week…",
+      false,
+      "loading"
+    );
+
+    const matchedSourceWeek =
+      sourceWeek;
+
+    const previousRows =
+      await TimesheetStorage.load(
+        matchedSourceWeek
+      );
+
+    if (!previousRows.length) {
+      const environmentName =
+        window.APP_CONFIG.isDevelopment
+          ? "DEV database"
+          : "production database";
+
+      setSaveButtonState("saved");
+
+      setStatus(
+        `No entries found in the ${environmentName} for the previous week starting ${formatDateForMessage(sourceWeek)}`,
+        false,
+        "saved"
+      );
+
+      return;
+    }
+
+    const copiedRows =
+      preparePreviousWeekRows(
+        previousRows,
+        destinationWeek
+      );
+
+    isLoading = true;
+
+    clearForm();
+    applyTimesheetData(copiedRows);
+
+    await TimesheetStorage.save(
+      destinationWeek,
+      copiedRows
+    );
+
+    setSaveButtonState("saved");
+
+    setStatus(
+      LOCAL_MODE
+        ? `Week starting ${formatDateForMessage(matchedSourceWeek)} copied locally`
+        : `Week starting ${formatDateForMessage(matchedSourceWeek)} copied into ${formatDateForMessage(destinationWeek)}`,
+      false,
+      "saved"
+    );
+
+    updateClearButtonState();
+  } catch (error) {
+    console.error(error);
+
+    setSaveButtonState("error");
+
+    setStatus(
+      `Unable to copy previous week: ${error.message}`,
+      true,
+      "error"
+    );
+  } finally {
+    isLoading = false;
+  }
+}
+
+
+/* =====================================================
+   GENERATE ROSTER
+   ===================================================== */
+
+function formatRosterTime(value) {
+  if (!value) {
+    return "";
+  }
+
+  const [hourText, minuteText] =
+    value.split(":");
+
+  const hour24 =
+    Number(hourText);
+
+  const suffix =
+    hour24 < 12 ? "am" : "pm";
+
+  const hour12 =
+    hour24 % 12 === 0
+      ? 12
+      : hour24 % 12;
+
+  return `${hour12}:${minuteText}${suffix}`;
+}
+
+function buildRosterText() {
+  const lines = [
+    `Roster for week commencing ${formatDateForMessage(weekStart.value)}`,
+    ""
+  ];
+
+  document
+    .querySelectorAll(".day-block")
+    .forEach((block) => {
+      const dayLines = [];
+
+      block
+        .querySelectorAll(".shift-row")
+        .forEach((row) => {
+          const start =
+            row.querySelector(".start").value;
+
+          const finish =
+            row.querySelector(".finish").value;
+
+          const splitStart =
+            row.querySelector(".split-start").value;
+
+          const splitFinish =
+            row.querySelector(".split-finish").value;
+
+          if (!start || !finish) {
+            return;
+          }
+
+          let shiftText =
+            `${row.dataset.employee} ` +
+            `${formatRosterTime(start)} - ` +
+            `${formatRosterTime(finish)}`;
+
+          if (
+            row.classList.contains("has-split-shift") &&
+            splitStart &&
+            splitFinish
+          ) {
+            shiftText +=
+              ` / ${formatRosterTime(splitStart)} - ` +
+              `${formatRosterTime(splitFinish)}`;
+          }
+
+          dayLines.push(shiftText);
+        });
+
+      lines.push(block.dataset.day);
+
+      if (dayLines.length) {
+        lines.push(...dayLines);
+      } else {
+        lines.push("No shifts");
+      }
+
+      lines.push("");
+    });
+
+  return lines
+    .join("\n")
+    .trim();
+}
+
+function setRosterMessage(
+  message,
+  isError = false
+) {
+  rosterMessage.textContent =
+    message;
+
+  rosterMessage.classList.toggle(
+    "is-error",
+    isError
+  );
+}
+
+function openRosterModal() {
+  closeManagerMenu();
+
+  rosterPreview.value =
+    buildRosterText();
+
+  setRosterMessage("");
+
+  shareRosterBtn.hidden =
+    typeof navigator.share !== "function";
+
+  rosterModal.hidden = false;
+  document.body.classList.add(
+    "staff-modal-open"
+  );
+
+  rosterPreview.focus();
+  rosterPreview.setSelectionRange(0, 0);
+}
+
+function closeRosterModal() {
+  rosterModal.hidden = true;
+  setRosterMessage("");
+
+  if (
+    staffModal.hidden &&
+    managerLoginModal.hidden &&
+    managerMenuModal.hidden &&
+    versionHistoryModal.hidden
+  ) {
+    document.body.classList.remove(
+      "staff-modal-open"
+    );
+  }
+}
+
+async function copyRosterText() {
+  const text =
+    rosterPreview.value;
+
+  try {
+    if (
+      navigator.clipboard &&
+      window.isSecureContext
+    ) {
+      await navigator.clipboard.writeText(
+        text
+      );
+    } else {
+      rosterPreview.focus();
+      rosterPreview.select();
+
+      const copied =
+        document.execCommand("copy");
+
+      if (!copied) {
+        throw new Error(
+          "Clipboard access is unavailable."
+        );
+      }
+
+      rosterPreview.setSelectionRange(0, 0);
+    }
+
+    setRosterMessage(
+      "Roster copied. It is ready to paste into WhatsApp."
+    );
+  } catch (error) {
+    console.error(error);
+
+    setRosterMessage(
+      "Unable to copy automatically. Select the roster text and copy it manually.",
+      true
+    );
+  }
+}
+
+async function shareRosterText() {
+  if (
+    typeof navigator.share !== "function"
+  ) {
+    setRosterMessage(
+      "Sharing is not supported by this browser. Use Copy Text instead.",
+      true
+    );
+    return;
+  }
+
+  try {
+    await navigator.share({
+      title:
+        `Roster ${formatDateForMessage(weekStart.value)}`,
+      text:
+        rosterPreview.value
+    });
+
+    setRosterMessage(
+      "Roster shared successfully."
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+
+    console.error(error);
+
+    setRosterMessage(
+      "Unable to open the share menu. Use Copy Text instead.",
+      true
+    );
+  }
+}
+
 /* =====================================================
    MANAGER CONTROLS
    ===================================================== */
@@ -671,14 +1110,116 @@ function addModeBadge() {
       "This version saves to the Supabase cloud database.";
   }
 
-  const version = document.createElement("div");
-  version.className = "app-version";
-  version.textContent = `Version ${window.APP_VERSION || "2.3.1-dev"}`;
+  const version = document.createElement("button");
+  version.className = "app-version app-version-button";
+  version.type = "button";
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.0"}`;
+  version.title = "View version history";
+  version.setAttribute("aria-label", "View version history");
 
-  wrapper.appendChild(badge);
+  version.addEventListener("click", openVersionHistory);
+
+  const badgeRow =
+    document.createElement("div");
+
+  badgeRow.className =
+    "header-badge-row";
+
+  if (
+    devBuildBanner &&
+    window.APP_CONFIG.isDevelopment
+  ) {
+    devBuildBanner.hidden = false;
+    badgeRow.appendChild(
+      devBuildBanner
+    );
+  }
+
+  badgeRow.appendChild(badge);
+
+  wrapper.appendChild(badgeRow);
   wrapper.appendChild(version);
 
   header.appendChild(wrapper);
+}
+
+
+function renderVersionHistory() {
+  const history =
+    Array.isArray(window.RELEASE_HISTORY)
+      ? window.RELEASE_HISTORY
+      : [];
+
+  versionHistoryCurrent.textContent =
+    `Current version: ${window.APP_VERSION}`;
+
+  versionHistoryList.innerHTML = "";
+
+  history.forEach((release, index) => {
+    const section =
+      document.createElement("section");
+
+    section.className =
+      "version-history-release";
+
+    if (index === 0) {
+      section.classList.add("is-current");
+    }
+
+    const heading =
+      document.createElement("div");
+
+    heading.className =
+      "version-history-release-heading";
+
+    const title =
+      document.createElement("h3");
+
+    title.textContent =
+      `Version ${release.version}`;
+
+    const date =
+      document.createElement("span");
+
+    date.textContent =
+      release.date || "";
+
+    heading.appendChild(title);
+    heading.appendChild(date);
+
+    const list =
+      document.createElement("ul");
+
+    (release.changes || []).forEach((change) => {
+      const item =
+        document.createElement("li");
+
+      item.textContent = change;
+      list.appendChild(item);
+    });
+
+    section.appendChild(heading);
+    section.appendChild(list);
+    versionHistoryList.appendChild(section);
+  });
+}
+
+function openVersionHistory() {
+  renderVersionHistory();
+  versionHistoryModal.hidden = false;
+  document.body.classList.add("staff-modal-open");
+}
+
+function closeVersionHistory() {
+  versionHistoryModal.hidden = true;
+
+  if (
+    staffModal.hidden &&
+    managerLoginModal.hidden &&
+    managerMenuModal.hidden
+  ) {
+    document.body.classList.remove("staff-modal-open");
+  }
 }
 
 /* =====================================================
@@ -845,6 +1386,108 @@ function populateSelect(
   });
 }
 
+function updateFinishOptions(
+  startSelect,
+  finishSelect,
+  day,
+  preferredValue = finishSelect.value
+) {
+  const startMinutes =
+    minutes(startSelect.value);
+
+  const allFinishOptions =
+    getTimeOptions(day, "finish");
+
+  const availableOptions =
+    startMinutes === null
+      ? allFinishOptions
+      : allFinishOptions.filter(
+          (option) =>
+            minutes(option.value) >=
+            startMinutes + 30
+        );
+
+  populateSelect(
+    finishSelect,
+    availableOptions
+  );
+
+  const preferredStillAvailable =
+    [...finishSelect.options].some(
+      (option) =>
+        option.value === preferredValue
+    );
+
+  finishSelect.value =
+    preferredStillAvailable
+      ? preferredValue
+      : "";
+}
+
+function getCurrentWeekStartValue() {
+  const today = new Date();
+  const monday = new Date(today);
+  const currentDay = monday.getDay();
+
+  const daysToMonday =
+    currentDay === 0
+      ? 1
+      : 1 - currentDay;
+
+  monday.setDate(
+    monday.getDate() + daysToMonday
+  );
+
+  return monday
+    .toISOString()
+    .slice(0, 10);
+}
+
+async function goToCurrentWeek() {
+  if (goToCurrentWeekBtn.disabled) {
+    return;
+  }
+
+  weekStart.value =
+    getCurrentWeekStartValue();
+
+  updateWeekEnd();
+  updateCurrentWeekHighlight();
+  await load();
+}
+
+function updateCurrentWeekHighlight() {
+  const weekCard =
+    document.querySelector(".week-card");
+
+  if (!weekCard || !weekStart.value) {
+    return;
+  }
+
+  const isCurrentWeek =
+    weekStart.value ===
+    getCurrentWeekStartValue();
+
+  weekCard.classList.toggle(
+    "is-current-week",
+    isCurrentWeek
+  );
+
+  goToCurrentWeekBtn.hidden = false;
+  goToCurrentWeekBtn.disabled =
+    isCurrentWeek;
+
+  goToCurrentWeekBtn.classList.toggle(
+    "is-current",
+    isCurrentWeek
+  );
+
+  goToCurrentWeekBtn.title =
+    isCurrentWeek
+      ? "You are viewing the current week"
+      : "Return to the current week";
+}
+
 /* =====================================================
    DYNAMIC TIMESHEET BUILDING
    ===================================================== */
@@ -904,6 +1547,7 @@ function createEmployeeRow(
 
   row.dataset.employee = member.name;
   row.dataset.employeeId = member.id;
+  row.dataset.day = day;
 
   nameElement.textContent = member.name;
 
@@ -941,19 +1585,46 @@ function createEmployeeRow(
     `${day} ${member.name} split shift finish`
   );
 
-  row
-    .querySelectorAll("select")
-    .forEach((select) => {
-      select.addEventListener(
-        "change",
-        () => {
-          calculateRow(row);
-          calculateTotals();
-          updateClearButtonState();
-          scheduleSave();
-        }
+  const handleShiftChange = () => {
+    calculateRow(row);
+    calculateTotals();
+    updateClearButtonState();
+    scheduleSave();
+  };
+
+  start.addEventListener(
+    "change",
+    () => {
+      updateFinishOptions(
+        start,
+        finish,
+        day
       );
-    });
+      handleShiftChange();
+    }
+  );
+
+  finish.addEventListener(
+    "change",
+    handleShiftChange
+  );
+
+  splitStart.addEventListener(
+    "change",
+    () => {
+      updateFinishOptions(
+        splitStart,
+        splitFinish,
+        day
+      );
+      handleShiftChange();
+    }
+  );
+
+  splitFinish.addEventListener(
+    "change",
+    handleShiftChange
+  );
 
   addSplitButton.addEventListener("click", () => {
     setSplitShiftVisible(row, true);
@@ -1123,7 +1794,7 @@ function calculateShiftMinutes(startSelect, finishSelect) {
 
   const total = finish - start;
 
-  if (total < 0 || total > 630) {
+  if (total < 30 || total > 630) {
     startSelect.classList.add("invalid");
     finishSelect.classList.add("invalid");
 
@@ -1575,15 +2246,21 @@ function applyTimesheetData(data) {
       return;
     }
 
-    row.querySelector(
-      ".start"
-    ).value =
+    const primaryStart =
+      row.querySelector(".start");
+
+    const primaryFinish =
+      row.querySelector(".finish");
+
+    primaryStart.value =
       record.start_time || "";
 
-    row.querySelector(
-      ".finish"
-    ).value =
-      record.finish_time || "";
+    updateFinishOptions(
+      primaryStart,
+      primaryFinish,
+      record.day,
+      record.finish_time || ""
+    );
 
     const splitKey =
       `${record.day}::${record.employee}`;
@@ -1594,15 +2271,21 @@ function applyTimesheetData(data) {
     if (splitShift) {
       setSplitShiftVisible(row, true);
 
-      row.querySelector(
-        ".split-start"
-      ).value =
+      const secondaryStart =
+        row.querySelector(".split-start");
+
+      const secondaryFinish =
+        row.querySelector(".split-finish");
+
+      secondaryStart.value =
         splitShift.start || "";
 
-      row.querySelector(
-        ".split-finish"
-      ).value =
-        splitShift.finish || "";
+      updateFinishOptions(
+        secondaryStart,
+        secondaryFinish,
+        record.day,
+        splitShift.finish || ""
+      );
     } else {
       setSplitShiftVisible(
         row,
@@ -2149,6 +2832,45 @@ managerMenuStaffBtn.addEventListener("click", async () => {
   await showStaffModal();
 });
 
+managerMenuCopyPreviousBtn.addEventListener(
+  "click",
+  copyPreviousWeek
+);
+
+managerMenuGenerateRosterBtn.addEventListener(
+  "click",
+  openRosterModal
+);
+
+copyRosterBtn.addEventListener(
+  "click",
+  copyRosterText
+);
+
+shareRosterBtn.addEventListener(
+  "click",
+  shareRosterText
+);
+
+closeRosterBtn.addEventListener(
+  "click",
+  closeRosterModal
+);
+
+closeRosterActionBtn.addEventListener(
+  "click",
+  closeRosterModal
+);
+
+rosterModal
+  .querySelectorAll("[data-close-roster]")
+  .forEach((element) => {
+    element.addEventListener(
+      "click",
+      closeRosterModal
+    );
+  });
+
 managerMenuClearBtn.addEventListener("click", async () => {
   if (managerMenuClearBtn.disabled) {
     return;
@@ -2291,6 +3013,16 @@ document.addEventListener("keydown", (event) => {
 
   if (!managerMenuModal.hidden) {
     closeManagerMenu();
+    return;
+  }
+
+  if (!versionHistoryModal.hidden) {
+    closeVersionHistory();
+    return;
+  }
+
+  if (!rosterModal.hidden) {
+    closeRosterModal();
   }
 });
 
@@ -2330,6 +3062,7 @@ weekStart.addEventListener(
   "change",
   async () => {
     updateWeekEnd();
+    updateCurrentWeekHighlight();
     await load();
   }
 );
@@ -2460,6 +3193,7 @@ function changeWeek(daysToAdd) {
     date.toISOString().slice(0, 10);
 
   updateWeekEnd();
+  updateCurrentWeekHighlight();
   load();
 }
 
@@ -2485,6 +3219,11 @@ document
     }
   );
 
+goToCurrentWeekBtn.addEventListener(
+  "click",
+  goToCurrentWeek
+);
+
 /* =====================================================
    START APPLICATION
    ===================================================== */
@@ -2494,30 +3233,10 @@ async function initialiseApp() {
 
   const today = new Date();
 
-  const monday =
-    new Date(today);
-
-  const currentDay =
-    monday.getDay();
-
-  /*
-    The app uses a Sunday-to-Saturday week.
-    Sunday points forward to the Monday within that week.
-    Monday through Saturday point back to that week's Monday.
-  */
-  const daysToMonday =
-    currentDay === 0
-      ? 1
-      : 1 - currentDay;
-
-  monday.setDate(
-    monday.getDate() + daysToMonday
-  );
-
   weekStart.value =
-    monday
-      .toISOString()
-      .slice(0, 10);
+    getCurrentWeekStartValue();
+
+  updateCurrentWeekHighlight();
 
   document.getElementById(
     "managerDate"
@@ -2540,5 +3259,20 @@ if (!LOCAL_MODE) {
     applyManagerControlState();
   });
 }
+
+
+closeVersionHistoryBtn.addEventListener(
+  "click",
+  closeVersionHistory
+);
+
+versionHistoryModal
+  .querySelectorAll("[data-close-version-history]")
+  .forEach((element) => {
+    element.addEventListener(
+      "click",
+      closeVersionHistory
+    );
+  });
 
 initialiseApp();

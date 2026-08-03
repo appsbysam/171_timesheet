@@ -22,7 +22,8 @@
       appHeading: "Staff Timesheet",
       buildLabel: "",
       modeSuffix: "",
-      manifestFile: "manifest-production.json"
+      manifestFile: "manifest-production.json",
+      versionSuffix: ""
     },
 
     development: {
@@ -34,7 +35,8 @@
       appHeading: "Staff Timesheet",
       buildLabel: "⚠ DEV BUILD",
       modeSuffix: " • DEV",
-      manifestFile: "manifest-dev.json"
+      manifestFile: "manifest-dev.json",
+      versionSuffix: "-dev"
     }
   };
 
