@@ -215,9 +215,6 @@ const appUpdateMessage =
 const appUpdateUnsavedMessage =
   document.getElementById("appUpdateUnsavedMessage");
 
-const appUpdateLaterBtn =
-  document.getElementById("appUpdateLaterBtn");
-
 const appUpdateNowBtn =
   document.getElementById("appUpdateNowBtn");
 
@@ -259,29 +256,6 @@ function hasUnsavedTimesheetChanges() {
   );
 }
 
-function closeAppUpdatePrompt({
-  dismissForSession = false
-} = {}) {
-  if (!pendingAppUpdate) {
-    appUpdateModal.hidden = true;
-    return;
-  }
-
-  if (dismissForSession) {
-    sessionStorage.setItem(
-      pendingAppUpdate.dismissedSessionKey,
-      pendingAppUpdate.deployedVersion
-    );
-  }
-
-  appUpdateModal.hidden = true;
-  document.body.classList.remove(
-    "app-update-modal-open"
-  );
-
-  pendingAppUpdate = null;
-}
-
 function reloadForAppUpdate() {
   if (!pendingAppUpdate) {
     return;
@@ -301,7 +275,7 @@ function reloadForAppUpdate() {
   );
 
   url.searchParams.set(
-    "refresh",
+    "hard-refresh",
     Date.now()
   );
 
@@ -312,8 +286,7 @@ function reloadForAppUpdate() {
 
 window.showAppUpdatePrompt = function ({
   deployedVersion,
-  versionStorageKey,
-  dismissedSessionKey
+  versionStorageKey
 }) {
   if (
     !appUpdateModal ||
@@ -324,23 +297,25 @@ window.showAppUpdatePrompt = function ({
 
   pendingAppUpdate = {
     deployedVersion,
-    versionStorageKey,
-    dismissedSessionKey
+    versionStorageKey
   };
 
   const hasUnsaved =
     hasUnsavedTimesheetChanges();
 
   appUpdateMessage.textContent =
-    "A new version of Staff Timesheet is available. Updating will reload the application.";
+    "A new version of Staff Timesheet is available. Click OK to update now.";
 
   appUpdateUnsavedMessage.hidden =
     !hasUnsaved;
 
+  if (hasUnsaved) {
+    appUpdateUnsavedMessage.textContent =
+      "Your unsaved changes will be saved before the update.";
+  }
+
   appUpdateNowBtn.textContent =
-    hasUnsaved
-      ? "Save & Update"
-      : "Update Now";
+    "OK";
 
   appUpdateModal.hidden = false;
   document.body.classList.add(
@@ -1233,7 +1208,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.7"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.8"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -3251,15 +3226,6 @@ saveBtn.addEventListener(
   }
 );
 
-appUpdateLaterBtn.addEventListener(
-  "click",
-  () => {
-    closeAppUpdatePrompt({
-      dismissForSession: true
-    });
-  }
-);
-
 appUpdateNowBtn.addEventListener(
   "click",
   async () => {
@@ -3278,13 +3244,13 @@ appUpdateNowBtn.addEventListener(
       if (!saved) {
         appUpdateNowBtn.disabled = false;
         appUpdateNowBtn.textContent =
-          "Save & Update";
+          "OK";
 
         appUpdateUnsavedMessage.hidden =
           false;
 
         appUpdateUnsavedMessage.textContent =
-          "The save was unsuccessful. Please try again before updating.";
+          "The save was unsuccessful. Please try again.";
 
         return;
       }
@@ -3297,17 +3263,6 @@ appUpdateNowBtn.addEventListener(
     reloadForAppUpdate();
   }
 );
-
-appUpdateModal
-  .querySelector(".app-update-backdrop")
-  .addEventListener(
-    "click",
-    () => {
-      closeAppUpdatePrompt({
-        dismissForSession: true
-      });
-    }
-  );
 
 document
   .getElementById("printBtn")

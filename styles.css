@@ -3098,3 +3098,22 @@ body.app-update-modal-open {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   SINGLE-ACTION UPDATE DIALOG — v3.0.8
+   ===================================================== */
+
+.app-update-actions {
+  grid-template-columns:
+    minmax(150px, 220px);
+  justify-content: center;
+}
+
+.app-update-now {
+  width: 100%;
+}
+
+.app-update-backdrop {
+  cursor: default;
+}

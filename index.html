@@ -37,7 +37,13 @@
     sizes="180x180"
     href="apple-touch-icon.png"
   />
-  <script src="config.js"></script>
+  <script>
+    document.write(
+      '<script src="config.js?startup=' +
+      Date.now() +
+      '"><\/script>'
+    );
+  </script>
   <script>
     document.write(
       '<script src="version.js?startup-check=' +
@@ -45,11 +51,22 @@
       '"><\/script>'
     );
   </script>
-  <script src="release-history.js"></script>
+  <script>
+    document.write(
+      '<script src="release-history.js?startup=' +
+      Date.now() +
+      '"><\/script>'
+    );
+  </script>
   <script>
     window.APP_DISPLAY_VERSION =
       window.APP_VERSION +
       (window.APP_CONFIG.versionSuffix || "");
+
+    window.APP_CACHE_TOKEN =
+      window.APP_DISPLAY_VERSION +
+      "-" +
+      Date.now();
 
     document
       .getElementById("appManifest")
@@ -58,53 +75,63 @@
         window.APP_CONFIG.manifestFile +
           "?v=" +
           encodeURIComponent(
-            window.APP_DISPLAY_VERSION
+            window.APP_CACHE_TOKEN
           )
       );
   </script>
   <script>
     document.write(
       '<link rel="stylesheet" href="styles.css?v=' +
-      encodeURIComponent(window.APP_DISPLAY_VERSION) +
+      encodeURIComponent(window.APP_CACHE_TOKEN) +
       '">'
     );
   </script>
   <script>
     /*
       Version update detection:
-      - Checks on startup.
-      - Checks every 10 minutes while the app remains open.
-      - Prompts the user instead of forcing an immediate refresh.
+      - Checks once when the app starts.
+      - Reads version.js without browser cache.
+      - Requires acknowledgement before updating.
     */
     (function () {
       const environmentName =
-        window.APP_CONFIG.environment || "production";
+        window.APP_CONFIG.environment ||
+        "production";
 
       const versionStorageKey =
-        "171-timesheet-last-version-" + environmentName;
-
-      const dismissedSessionKey =
-        "171-timesheet-update-dismissed-" + environmentName;
+        "171-timesheet-last-version-" +
+        environmentName;
 
       async function fetchDeployedVersion() {
         try {
-          const response = await fetch(
-            "version.js?update-check=" + Date.now(),
-            { cache: "no-store" }
-          );
+          const response =
+            await fetch(
+              "version.js?update-check=" +
+                Date.now(),
+              {
+                cache: "no-store"
+              }
+            );
 
           if (!response.ok) {
             return "";
           }
 
-          const source = await response.text();
-          const match = source.match(
-            /window\.APP_VERSION\s*=\s*["']([^"']+)["']/
-          );
+          const source =
+            await response.text();
+
+          const match =
+            source.match(
+              /window\.APP_VERSION\s*=\s*["']([^"']+)["']/
+            );
 
           return match ? match[1] : "";
         } catch (error) {
-          console.warn("Version check unavailable:", error);
+          console.warn(
+            "Version check unavailable:",
+            error
+          );
+
           return "";
         }
       }
@@ -118,27 +145,22 @@
         }
 
         const lastUsedVersion =
-          localStorage.getItem(versionStorageKey);
+          localStorage.getItem(
+            versionStorageKey
+          );
 
         if (!lastUsedVersion) {
           localStorage.setItem(
             versionStorageKey,
             deployedVersion
           );
-          return;
-        }
 
-        if (lastUsedVersion === deployedVersion) {
-          sessionStorage.removeItem(
-            dismissedSessionKey
-          );
           return;
         }
 
         if (
-          sessionStorage.getItem(
-            dismissedSessionKey
-          ) === deployedVersion
+          lastUsedVersion ===
+          deployedVersion
         ) {
           return;
         }
@@ -149,8 +171,7 @@
         ) {
           window.showAppUpdatePrompt({
             deployedVersion,
-            versionStorageKey,
-            dismissedSessionKey
+            versionStorageKey
           });
         }
       }
@@ -161,11 +182,6 @@
           window.setTimeout(
             checkForUpdate,
             700
-          );
-
-          window.setInterval(
-            checkForUpdate,
-            10 * 60 * 1000
           );
         }
       );
@@ -776,14 +792,6 @@
 
       <div class="app-update-actions">
         <button
-          id="appUpdateLaterBtn"
-          type="button"
-          class="app-update-later"
-        >
-          Later
-        </button>
-
-        <button
           id="appUpdateNowBtn"
           type="button"
           class="app-update-now"
@@ -896,7 +904,7 @@
   <script>
     document.write(
       '<script src="app.js?v=' +
-      encodeURIComponent(window.APP_DISPLAY_VERSION) +
+      encodeURIComponent(window.APP_CACHE_TOKEN) +
       '"><\/script>'
     );
   </script>

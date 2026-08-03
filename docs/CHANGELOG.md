@@ -1,5 +1,18 @@
 # 171 Café Staff Timesheet
 
+## Version 3.0.8
+Released: 4 August 2026
+
+### Changed
+- Removed the **Later** option from the update prompt.
+- The update dialog now has one **OK** button.
+- The app checks for updates once at startup rather than every 10 minutes.
+- If unsaved timesheet changes exist, they are saved before updating.
+- Main local app files now receive a unique cache token on every load.
+- Clicking **OK** reloads using a unique hard-refresh URL to retrieve the latest deployed files.
+
+---
+
 ## Version 3.0.7
 Released: 4 August 2026
 
@@ -113,7 +126,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.0.7**
+-   Current production version: **3.0.8**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

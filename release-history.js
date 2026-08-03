@@ -1,5 +1,17 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.0.8",
+    date: "4 August 2026",
+    changes: [
+      "Removed the Later option from the update prompt.",
+      "Changed the update dialog to a single OK action.",
+      "The app now checks for updates only once when it starts.",
+      "Added fresh cache tokens to the main local app files on every load.",
+      "Clicking OK reloads with a unique hard-refresh URL.",
+      "Unsaved changes are saved before the update continues."
+    ]
+  },
+  {
     version: "3.0.7",
     date: "4 August 2026",
     changes: [
