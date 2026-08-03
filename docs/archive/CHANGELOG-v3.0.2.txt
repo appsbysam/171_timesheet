@@ -1,0 +1,43 @@
+====================================================
+171 Café Staff Timesheet
+Version 3.0.2
+Release Date: 3 August 2026
+====================================================
+
+URGENT WEEK-DATE FIX
+--------------------
+• A work week now always starts on Monday.
+• A work week now always ends on Saturday.
+• Sunday is never used as a Week Starting date.
+• On Sunday, the app selects the following Monday.
+• Monday through Saturday select the Monday within that operating week.
+
+ROOT CAUSE
+----------
+• JavaScript toISOString() converts local dates to UTC.
+• In Sydney and other positive UTC time zones, local Monday midnight can become Sunday in UTC.
+• The app now formats calendar dates using local year, month and day values instead.
+
+ADDITIONAL DATE SAFETY
+----------------------
+• Previous Week and Next Week now use UTC-safe date-only arithmetic.
+• Week Ending is calculated as exactly five days after Monday.
+• Manager Date now uses the local calendar date and cannot shift back one day.
+
+EXAMPLES
+--------
+• Sunday 02/08/2026 → Week Starting 03/08/2026
+• Monday 03/08/2026 → Week Starting 03/08/2026
+• Saturday 08/08/2026 → Week Starting 03/08/2026
+• Week Ending for 03/08/2026 → 08/08/2026
+
+FILES CHANGED
+-------------
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v3.0.2.txt
+
+====================================================

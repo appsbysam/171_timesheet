@@ -1,0 +1,1 @@
+Reduced top navigation button widths so all three buttons fit on one row.

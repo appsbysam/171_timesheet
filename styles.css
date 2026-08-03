@@ -2914,3 +2914,52 @@ body.staff-modal-open {
     padding: 6px 5px;
   }
 }
+
+
+/* =====================================================
+   FIXED WEEK NAVIGATION WIDTHS — v3.0.5
+   ===================================================== */
+
+/*
+  Always reserve three equal navigation columns.
+  When Today is unavailable, its middle slot remains empty,
+  so Previous and Next never expand or shift.
+*/
+.week-nav,
+.week-nav:has(.week-nav-today[hidden]),
+.week-nav:not(:has(.week-nav-today[hidden])) {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+}
+
+.week-nav .week-nav-today.is-placeholder-hidden {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* Preserve the exact established size on desktop and mobile. */
+.week-nav .week-nav-previous,
+.week-nav .week-nav-next,
+.week-nav .week-nav-today {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+@media (min-width: 601px) {
+  .week-nav .week-nav-previous,
+  .week-nav .week-nav-next,
+  .week-nav .week-nav-today {
+    min-height: 46px !important;
+    padding: 8px 10px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .week-nav .week-nav-previous,
+  .week-nav .week-nav-next,
+  .week-nav .week-nav-today {
+    min-height: 40px !important;
+    padding: 6px 5px !important;
+  }
+}

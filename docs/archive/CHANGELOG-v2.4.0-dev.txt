@@ -1,0 +1,30 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.4.0-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW FEATURES
+------------
+• The version number is now clickable.
+• Added an in-app “What’s New” and version-history window.
+• Added a scrollable list of recent releases and major changes.
+• The current version is automatically highlighted.
+• Added mobile-friendly modal behaviour.
+
+IMPROVEMENTS
+------------
+• Version information is now accessible without opening GitHub or text files.
+• Staff and managers can quickly confirm which app version is running.
+• Release history is stored separately in release-history.js for easy maintenance.
+
+FILES CHANGED OR ADDED
+----------------------
+• index.html
+• styles.css
+• app.js
+• version.js
+• release-history.js
+• CHANGELOG-v2.4.0-dev.txt
+
+====================================================

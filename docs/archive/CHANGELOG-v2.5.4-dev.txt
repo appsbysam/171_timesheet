@@ -1,0 +1,27 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.5.4-dev
+Release Date: 3 August 2026
+====================================================
+
+LAYOUT IMPROVEMENT
+------------------
+• Changed the week-selection area to a compact horizontal desktop layout.
+• Week Starting and Week Ending now sit on the left.
+• Previous Week and Next Week now sit alongside them on the right.
+• Button and date-field heights are aligned.
+• The green current-week highlighting remains unchanged.
+• Smaller screens retain the existing responsive stacked layout.
+• Go to Current Week spans the navigation area when visible.
+
+FILES CHANGED
+-------------
+• styles.css
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.5.4-dev.txt
+
+====================================================

@@ -1,0 +1,43 @@
+====================================================
+171 Café Staff Timesheet
+Version 3.0.4
+Release Date: 3 August 2026
+====================================================
+
+VERSION CHECKER IMPROVEMENT
+---------------------------
+• Replaced the previous cache-dependent checker.
+• The app now remembers the last version used in each browser.
+• On first use, the current version is stored silently.
+• When a future deployment changes the version, the app displays:
+  “A new version is available. Loading now…”
+• The app then reloads once using a cache-busting URL.
+• DEV and production store their version history separately.
+• A session guard prevents repeated reload loops.
+
+HOW IT WORKS
+------------
+• Stored production key:
+  171-timesheet-last-version-production
+• Stored DEV key:
+  171-timesheet-last-version-development
+• If the stored version differs from version.js, the update notice appears.
+• The new version is saved before reloading.
+
+DYNAMIC ENVIRONMENT VERSIONING
+------------------------------
+• Production displays Version 3.0.4.
+• DEV displays Version 3.0.4-dev.
+• config.js continues to apply the environment suffix automatically.
+
+FILES CHANGED
+-------------
+• index.html
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v3.0.4.txt
+
+====================================================

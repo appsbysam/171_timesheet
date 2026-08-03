@@ -1,0 +1,33 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.6.0-dev
+Release Date: 3 August 2026
+====================================================
+
+NAVIGATION REDESIGN
+-------------------
+• Rebuilt the Previous, Today and Next buttons from scratch.
+• Added clean SVG icons rather than text arrows.
+• Added a modern system font, rounded corners, subtle gradients and shadows.
+• All three buttons now use equal responsive widths.
+• The navigation remains on one row without overlapping.
+
+TODAY BUTTON
+------------
+• The Today button is now always visible.
+• When another week is selected, it returns directly to the current week.
+• When the current week is already selected, Today is disabled and highlighted green.
+• Keeping the button visible prevents the layout from shifting.
+
+FILES CHANGED
+-------------
+• index.html
+• app.js
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.6.0-dev.txt
+
+====================================================

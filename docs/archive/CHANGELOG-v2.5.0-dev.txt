@@ -1,0 +1,41 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.5.0-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW FEATURE
+-----------
+• Added “Copy Previous Week” inside Manager Mode.
+• The action copies normal shifts and split shifts from the previous week.
+• The copied data is populated into the selected week and saved automatically.
+• The feature is available only after a manager has signed in.
+
+OVERWRITE PROTECTION
+--------------------
+• If the selected week already contains entered values, the manager is warned:
+  “There are values entered for the current week. This will override those values. Are you sure you want to continue?”
+• If the selected week contains no entered values, copying happens without a confirmation message.
+• Cancelling the warning leaves the selected week unchanged.
+
+COPY RULES
+----------
+• Shift start and finish times are copied.
+• Split-shift start and finish times are copied.
+• Calculated hours are copied.
+• Manager notes are not copied.
+• Manager name and manager date are not copied.
+• If the previous week has no entries, the app displays a status message and makes no changes.
+
+FILES CHANGED
+-------------
+• app.js
+• index.html
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.5.0-dev.txt
+
+====================================================

@@ -1,0 +1,30 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.5.1-dev
+Release Date: 3 August 2026
+====================================================
+
+BUG FIXES
+---------
+• Fixed a startup error that prevented staff rows and saved times from loading when the app first opened.
+• Restored automatic calculation of the Week Ending date during startup.
+• Restored automatic population of the Manager Date field.
+• Current-week data now loads immediately without navigating away and returning.
+
+COPY PREVIOUS WEEK
+------------------
+• Fixed Copy Previous Week failing to find some older records.
+• The app first searches for the correct Monday-based previous week.
+• If no records are found, it also checks the legacy Sunday-based week date used briefly by an older release.
+• Legacy records are still copied into the correct currently selected Monday-based week.
+
+FILES CHANGED
+-------------
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.5.1-dev.txt
+
+====================================================

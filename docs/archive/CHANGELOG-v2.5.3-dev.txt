@@ -1,0 +1,31 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.5.3-dev
+Release Date: 3 August 2026
+====================================================
+
+BUG FIX
+-------
+• Fixed Copy Previous Week searching for 26/07/2026 instead of 27/07/2026.
+• The fault was caused by converting a local midnight date to UTC with toISOString(), which moved the date back one day in Sydney and other positive UTC time zones.
+• Date calculations now use UTC-safe year, month and day values.
+
+COPY PREVIOUS WEEK
+------------------
+• The currently selected Week Starting date remains the destination.
+• The source week is now exactly seven calendar days before that selected date.
+• Example:
+  Destination: 03/08/2026
+  Source:      27/07/2026
+• The unnecessary Sunday fallback has been removed.
+
+FILES CHANGED
+-------------
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.5.3-dev.txt
+
+====================================================

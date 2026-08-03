@@ -65,15 +65,33 @@
   </script>
   <script>
     /*
-      Checks the deployed version.js without using the browser cache.
-      If a newer build is found, a small updating message is shown
-      and the page reloads once using a fresh URL.
+      Persistent version tracking:
+      - First visit: stores the current deployed version silently.
+      - Future version change: shows a short notice and reloads once.
+      - The stored version is kept separately for DEV and production.
     */
     (function () {
-      const reloadKey =
-        "171-timesheet-version-refresh";
+      const environmentName =
+        window.APP_CONFIG.environment ||
+        "production";
+
+      const versionStorageKey =
+        "171-timesheet-last-version-" +
+        environmentName;
+
+      const refreshGuardKey =
+        "171-timesheet-refreshing-" +
+        environmentName;
 
       function showVersionUpdateNotice() {
+        if (
+          document.querySelector(
+            ".version-update-notice"
+          )
+        ) {
+          return;
+        }
+
         const notice =
           document.createElement("div");
 
@@ -100,96 +118,100 @@
         document.body.appendChild(notice);
       }
 
-      async function checkForNewVersion() {
-        try {
-          const response =
-            await fetch(
-              "version.js?version-check=" +
-                Date.now(),
-              {
-                cache: "no-store"
-              }
-            );
+      function completeVersionCheck() {
+        const currentVersion =
+          window.APP_VERSION;
 
-          if (!response.ok) {
-            return;
-          }
-
-          const source =
-            await response.text();
-
-          const match =
-            source.match(
-              /window\.APP_VERSION\s*=\s*["']([^"']+)["']/
-            );
-
-          if (!match) {
-            return;
-          }
-
-          const deployedVersion =
-            match[1];
-
-          if (
-            deployedVersion ===
-            window.APP_VERSION
-          ) {
-            sessionStorage.removeItem(
-              reloadKey
-            );
-            return;
-          }
-
-          const previousAttempt =
-            sessionStorage.getItem(
-              reloadKey
-            );
-
-          showVersionUpdateNotice();
-
-          if (
-            previousAttempt ===
-            deployedVersion
-          ) {
-            return;
-          }
-
-          sessionStorage.setItem(
-            reloadKey,
-            deployedVersion
+        const lastUsedVersion =
+          localStorage.getItem(
+            versionStorageKey
           );
 
-          window.setTimeout(() => {
-            const url =
-              new URL(
-                window.location.href
-              );
-
-            url.searchParams.set(
-              "app-version",
-              deployedVersion
-            );
-
-            url.searchParams.set(
-              "refresh",
-              Date.now()
-            );
-
-            window.location.replace(
-              url.toString()
-            );
-          }, 1100);
-        } catch (error) {
-          console.warn(
-            "Version check unavailable:",
-            error
+        /*
+          First visit on this browser/environment:
+          remember the version without showing a popup.
+        */
+        if (!lastUsedVersion) {
+          localStorage.setItem(
+            versionStorageKey,
+            currentVersion
           );
+
+          sessionStorage.removeItem(
+            refreshGuardKey
+          );
+
+          return;
         }
+
+        /*
+          Same version as last time:
+          clear any temporary reload guard.
+        */
+        if (
+          lastUsedVersion ===
+          currentVersion
+        ) {
+          sessionStorage.removeItem(
+            refreshGuardKey
+          );
+
+          return;
+        }
+
+        const guardedVersion =
+          sessionStorage.getItem(
+            refreshGuardKey
+          );
+
+        /*
+          Remember the new version before reloading.
+          This prevents an endless update loop.
+        */
+        localStorage.setItem(
+          versionStorageKey,
+          currentVersion
+        );
+
+        showVersionUpdateNotice();
+
+        if (
+          guardedVersion ===
+          currentVersion
+        ) {
+          return;
+        }
+
+        sessionStorage.setItem(
+          refreshGuardKey,
+          currentVersion
+        );
+
+        window.setTimeout(() => {
+          const url =
+            new URL(
+              window.location.href
+            );
+
+          url.searchParams.set(
+            "app-version",
+            currentVersion
+          );
+
+          url.searchParams.set(
+            "refresh",
+            Date.now()
+          );
+
+          window.location.replace(
+            url.toString()
+          );
+        }, 1100);
       }
 
       window.addEventListener(
         "DOMContentLoaded",
-        checkForNewVersion
+        completeVersionCheck
       );
     })();
   </script>

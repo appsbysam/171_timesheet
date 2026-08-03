@@ -1,0 +1,41 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.7.0-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW FEATURE — GENERATE ROSTER
+-----------------------------
+• Added Generate Roster inside Manager Mode.
+• The roster is generated from the week currently selected in the app.
+• The generated text opens in an editable preview before it is copied or shared.
+
+ROSTER FORMAT
+-------------
+• Includes the heading:
+  Roster for week commencing DD/MM/YYYY
+• Lists Monday through Saturday.
+• Lists only staff with a complete start and finish time.
+• Displays “No shifts” when nobody is rostered on a day.
+• Split shifts appear in this format:
+  Mikayla 5:00am - 9:30am / 10:30am - 2:30pm
+
+WHATSAPP AND SHARING
+--------------------
+• Copy Text copies the roster to the clipboard for pasting into WhatsApp.
+• Share opens the device’s normal share menu on supported devices.
+• The Share button is hidden where native sharing is unavailable.
+• The preview remains editable so the manager can make last-minute changes.
+
+FILES CHANGED
+-------------
+• index.html
+• app.js
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.7.0-dev.txt
+
+====================================================

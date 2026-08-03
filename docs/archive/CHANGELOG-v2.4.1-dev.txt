@@ -1,0 +1,37 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.4.1-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW FEATURES
+------------
+• Added automatic current-week detection.
+• The date-selection card turns green when the selected week is the current week.
+• Added a Current Week status badge.
+• Finish-time dropdowns now begin 30 minutes after the selected Start time.
+• Added the same dynamic Finish filtering to split shifts.
+
+IMPROVEMENTS
+------------
+• Moved the DEV BUILD badge beside the ONLINE MODE • DEV badge.
+• Reduced the chance of accidentally selecting a Finish time before the Start time.
+• Existing saved times are preserved and loaded into the filtered dropdowns correctly.
+
+VALIDATION
+----------
+• Shifts must now be at least 30 minutes long.
+• Invalid or unavailable Finish values are cleared automatically after changing Start.
+
+FILES CHANGED
+-------------
+• app.js
+• index.html
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.4.1-dev.txt
+
+====================================================

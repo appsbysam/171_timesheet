@@ -1,0 +1,32 @@
+====================================================
+171 Café Staff Timesheet
+Version 3.0.5
+Release Date: 3 August 2026
+====================================================
+
+FIXED NAVIGATION WIDTHS
+-----------------------
+• Previous and Next no longer resize when Today is hidden.
+• The navigation always keeps three equal internal columns.
+• On the current week, the middle Today position remains empty.
+• Today is still completely invisible and cannot be clicked.
+• Desktop and mobile button dimensions remain fixed.
+• Previous and Next retain their existing styling and size.
+
+DYNAMIC ENVIRONMENT VERSIONING
+------------------------------
+• Production displays Version 3.0.5.
+• DEV displays Version 3.0.5-dev.
+• config.js continues to apply the environment suffix automatically.
+
+FILES CHANGED
+-------------
+• app.js
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v3.0.5.txt
+
+====================================================

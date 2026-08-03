@@ -1,7 +1,7 @@
-u{
-  "name": "Staff Timesheet",
-  "short_name": "Timesheet",
-  "description": "Staff timesheet for One7One Café.",
+{
+  "name": "DEV — Staff Timesheet",
+  "short_name": "DEV Timesheet",
+  "description": "Development and testing version of the One7One Café staff timesheet.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -21,5 +21,5 @@ u{
       "purpose": "any maskable"
     }
   ],
-  "version": "2.2.3"
+  "version": "2.3.0-dev"
 }

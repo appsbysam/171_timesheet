@@ -1,0 +1,29 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.6.1-dev
+Release Date: 3 August 2026
+====================================================
+
+DESKTOP DATE FIELD
+------------------
+• Reduced the date text slightly on computer and tablet-width screens.
+• Full dates now fit more comfortably inside the Week Starting and Week Ending fields.
+• Mobile date sizing is unchanged.
+
+TODAY BUTTON
+------------
+• When viewing a past or future week, Today is now vibrant green with white text and icon.
+• When viewing the current week, Today changes to a softer light-green disabled state.
+• Hover styling has been added to the active Today button.
+
+FILES CHANGED
+-------------
+• styles.css
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.6.1-dev.txt
+
+====================================================

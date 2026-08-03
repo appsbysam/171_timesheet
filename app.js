@@ -1113,7 +1113,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.3"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.5"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -1498,8 +1498,11 @@ function updateCurrentWeekHighlight() {
     isCurrentWeek
   );
 
-  goToCurrentWeekBtn.hidden =
-    isCurrentWeek;
+  /*
+    Keep the middle grid column reserved so Previous and Next
+    never resize when Today is unavailable.
+  */
+  goToCurrentWeekBtn.hidden = false;
 
   goToCurrentWeekBtn.disabled =
     isCurrentWeek;
@@ -1507,6 +1510,16 @@ function updateCurrentWeekHighlight() {
   goToCurrentWeekBtn.classList.toggle(
     "is-current",
     isCurrentWeek
+  );
+
+  goToCurrentWeekBtn.classList.toggle(
+    "is-placeholder-hidden",
+    isCurrentWeek
+  );
+
+  goToCurrentWeekBtn.setAttribute(
+    "aria-hidden",
+    isCurrentWeek ? "true" : "false"
   );
 
   goToCurrentWeekBtn.title =

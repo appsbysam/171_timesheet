@@ -1,0 +1,26 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.4.2-dev
+Release Date: 3 August 2026
+====================================================
+
+IMPROVEMENTS
+------------
+• Removed the Current Week badge when viewing the current week.
+• Added a visible “Go to Current Week” button when viewing a past or future week.
+• The button is hidden automatically while the current week is selected.
+• Selecting the button returns directly to the current week and reloads its saved data.
+• The green current-week highlighting remains unchanged.
+
+FILES CHANGED
+-------------
+• app.js
+• index.html
+• styles.css
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.4.2-dev.txt
+
+====================================================

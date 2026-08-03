@@ -1,0 +1,35 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.5.2-dev
+Release Date: 3 August 2026
+====================================================
+
+COPY PREVIOUS WEEK
+------------------
+• The currently selected Week Starting date is the destination week.
+• The source is calculated as exactly seven days before that selected week.
+• The app first checks the correct Monday-based source date.
+• It then checks the older Sunday-based source date for compatibility.
+
+DIAGNOSTICS
+-----------
+• A failed copy now shows the exact source week that was searched.
+• The message now states whether the search occurred in the DEV database or production database.
+• A successful copy shows both the source and destination week dates.
+
+IMPORTANT
+---------
+• DEV and production use separate Supabase databases.
+• Production timesheet records do not automatically exist in DEV.
+• To test Copy Previous Week in DEV, the prior week's records must first exist in the DEV database.
+
+FILES CHANGED
+-------------
+• app.js
+• version.js
+• manifest-dev.json
+• manifest-production.json
+• release-history.js
+• CHANGELOG-v2.5.2-dev.txt
+
+====================================================

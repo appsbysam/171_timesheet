@@ -1,0 +1,35 @@
+====================================================
+171 Café Staff Timesheet — Development Build
+Version 2.3.0-dev
+Release Date: 3 August 2026
+====================================================
+
+NEW
+---
+• Added a prominent DEV BUILD badge in the application header.
+• Changed the browser tab title to “DEV — Café Staff Timesheet”.
+• Changed the installed PWA name to “DEV — Staff Timesheet”.
+• Changed the PWA short name to “DEV Timesheet”.
+• Added “DEV” to the ONLINE/LOCAL mode indicator.
+
+SAFETY
+------
+• The development app is now visually distinct from the production app.
+• These changes reduce the risk of confusing the test environment with the live staff timesheet.
+
+VERSION MANAGEMENT
+------------------
+• Updated version.js to 2.3.0-dev.
+• Updated manifest.json version metadata to 2.3.0-dev.
+• The displayed version and cache-busting continue to read from version.js.
+
+FILES CHANGED
+-------------
+• index.html
+• styles.css
+• app.js
+• manifest.json
+• version.js
+• CHANGELOG-v2.3.0-dev.txt
+
+====================================================
