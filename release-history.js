@@ -1,5 +1,26 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.0.7",
+    date: "4 August 2026",
+    changes: [
+      "Replaced the brief forced update notice with a prompted Update Available dialog.",
+      "Added Update Now and Later choices.",
+      "Added Save & Update protection when unsaved changes exist.",
+      "Added automatic update checks every 10 minutes while the app remains open.",
+      "Continued using docs/CHANGELOG.md as the single master changelog."
+    ]
+  },
+  {
+    version: "3.0.6",
+    date: "4 August 2026",
+    changes: [
+      "Fixed the version popup by loading version.js without browser cache.",
+      "The actual deployed version is compared with the last version stored in the browser.",
+      "A changed version shows the loading notice and refreshes once.",
+      "First visits remain silent and DEV and production are tracked separately."
+    ]
+  },
+  {
     version: "3.0.5",
     date: "3 August 2026",
     changes: [

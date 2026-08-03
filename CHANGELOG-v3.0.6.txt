@@ -1,0 +1,18 @@
+====================================================
+171 Café Staff Timesheet
+Version 3.0.6
+Release Date: 4 August 2026
+====================================================
+
+RELIABLE VERSION POPUP
+----------------------
+• version.js now loads with a unique cache-busting URL on every app start.
+• The checker reads the actual version deployed to GitHub.
+• That version is compared with the last version stored in the browser.
+• When they differ, the app shows:
+  “A new version is available. Loading now…”
+• The app refreshes once and prevents reload loops.
+• First visits remain silent.
+• DEV and production are tracked separately.
+
+====================================================

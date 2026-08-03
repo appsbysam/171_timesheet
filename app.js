@@ -206,6 +206,21 @@ const managerLoginMessage =
 const managerSignOutBtn =
   document.getElementById("managerSignOutBtn");
 
+const appUpdateModal =
+  document.getElementById("appUpdateModal");
+
+const appUpdateMessage =
+  document.getElementById("appUpdateMessage");
+
+const appUpdateUnsavedMessage =
+  document.getElementById("appUpdateUnsavedMessage");
+
+const appUpdateLaterBtn =
+  document.getElementById("appUpdateLaterBtn");
+
+const appUpdateNowBtn =
+  document.getElementById("appUpdateNowBtn");
+
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
@@ -230,6 +245,111 @@ function showConfirmDialog({title="Warning",message,detail="",confirmText="Confi
     document.addEventListener("keydown",onKey); confirmBtn.focus();
   });
 }
+
+let pendingAppUpdate = null;
+
+function hasUnsavedTimesheetChanges() {
+  return Boolean(
+    saveBtn &&
+    (
+      saveBtn.classList.contains("is-ready") ||
+      saveBtn.classList.contains("is-error") ||
+      saveTimer
+    )
+  );
+}
+
+function closeAppUpdatePrompt({
+  dismissForSession = false
+} = {}) {
+  if (!pendingAppUpdate) {
+    appUpdateModal.hidden = true;
+    return;
+  }
+
+  if (dismissForSession) {
+    sessionStorage.setItem(
+      pendingAppUpdate.dismissedSessionKey,
+      pendingAppUpdate.deployedVersion
+    );
+  }
+
+  appUpdateModal.hidden = true;
+  document.body.classList.remove(
+    "app-update-modal-open"
+  );
+
+  pendingAppUpdate = null;
+}
+
+function reloadForAppUpdate() {
+  if (!pendingAppUpdate) {
+    return;
+  }
+
+  localStorage.setItem(
+    pendingAppUpdate.versionStorageKey,
+    pendingAppUpdate.deployedVersion
+  );
+
+  const url =
+    new URL(window.location.href);
+
+  url.searchParams.set(
+    "app-version",
+    pendingAppUpdate.deployedVersion
+  );
+
+  url.searchParams.set(
+    "refresh",
+    Date.now()
+  );
+
+  window.location.replace(
+    url.toString()
+  );
+}
+
+window.showAppUpdatePrompt = function ({
+  deployedVersion,
+  versionStorageKey,
+  dismissedSessionKey
+}) {
+  if (
+    !appUpdateModal ||
+    !deployedVersion
+  ) {
+    return;
+  }
+
+  pendingAppUpdate = {
+    deployedVersion,
+    versionStorageKey,
+    dismissedSessionKey
+  };
+
+  const hasUnsaved =
+    hasUnsavedTimesheetChanges();
+
+  appUpdateMessage.textContent =
+    "A new version of Staff Timesheet is available. Updating will reload the application.";
+
+  appUpdateUnsavedMessage.hidden =
+    !hasUnsaved;
+
+  appUpdateNowBtn.textContent =
+    hasUnsaved
+      ? "Save & Update"
+      : "Update Now";
+
+  appUpdateModal.hidden = false;
+  document.body.classList.add(
+    "app-update-modal-open"
+  );
+
+  appUpdateNowBtn.focus();
+};
+
 let staffOperationBusy = false;
 let staffStatusResetTimer = null;
 let staffToastTimer = null;
@@ -1113,7 +1233,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.5"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.7"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -2159,6 +2279,7 @@ async function save() {
 
     updateClearButtonState();
     closeManagerMenu();
+    return true;
   } catch (error) {
     console.error(error);
 
@@ -2169,6 +2290,8 @@ async function save() {
       true,
       "error"
     );
+
+    return false;
   }
 }
 
@@ -3127,6 +3250,64 @@ saveBtn.addEventListener(
     save();
   }
 );
+
+appUpdateLaterBtn.addEventListener(
+  "click",
+  () => {
+    closeAppUpdatePrompt({
+      dismissForSession: true
+    });
+  }
+);
+
+appUpdateNowBtn.addEventListener(
+  "click",
+  async () => {
+    if (!pendingAppUpdate) {
+      return;
+    }
+
+    if (hasUnsavedTimesheetChanges()) {
+      appUpdateNowBtn.disabled = true;
+      appUpdateNowBtn.textContent =
+        "Saving…";
+
+      const saved =
+        await save();
+
+      if (!saved) {
+        appUpdateNowBtn.disabled = false;
+        appUpdateNowBtn.textContent =
+          "Save & Update";
+
+        appUpdateUnsavedMessage.hidden =
+          false;
+
+        appUpdateUnsavedMessage.textContent =
+          "The save was unsuccessful. Please try again before updating.";
+
+        return;
+      }
+    }
+
+    appUpdateNowBtn.disabled = true;
+    appUpdateNowBtn.textContent =
+      "Updating…";
+
+    reloadForAppUpdate();
+  }
+);
+
+appUpdateModal
+  .querySelector(".app-update-backdrop")
+  .addEventListener(
+    "click",
+    () => {
+      closeAppUpdatePrompt({
+        dismissForSession: true
+      });
+    }
+  );
 
 document
   .getElementById("printBtn")

@@ -38,7 +38,13 @@
     href="apple-touch-icon.png"
   />
   <script src="config.js"></script>
-  <script src="version.js"></script>
+  <script>
+    document.write(
+      '<script src="version.js?startup-check=' +
+      Date.now() +
+      '"><\/script>'
+    );
+  </script>
   <script src="release-history.js"></script>
   <script>
     window.APP_DISPLAY_VERSION =
@@ -65,153 +71,103 @@
   </script>
   <script>
     /*
-      Persistent version tracking:
-      - First visit: stores the current deployed version silently.
-      - Future version change: shows a short notice and reloads once.
-      - The stored version is kept separately for DEV and production.
+      Version update detection:
+      - Checks on startup.
+      - Checks every 10 minutes while the app remains open.
+      - Prompts the user instead of forcing an immediate refresh.
     */
     (function () {
       const environmentName =
-        window.APP_CONFIG.environment ||
-        "production";
+        window.APP_CONFIG.environment || "production";
 
       const versionStorageKey =
-        "171-timesheet-last-version-" +
-        environmentName;
+        "171-timesheet-last-version-" + environmentName;
 
-      const refreshGuardKey =
-        "171-timesheet-refreshing-" +
-        environmentName;
+      const dismissedSessionKey =
+        "171-timesheet-update-dismissed-" + environmentName;
 
-      function showVersionUpdateNotice() {
-        if (
-          document.querySelector(
-            ".version-update-notice"
-          )
-        ) {
+      async function fetchDeployedVersion() {
+        try {
+          const response = await fetch(
+            "version.js?update-check=" + Date.now(),
+            { cache: "no-store" }
+          );
+
+          if (!response.ok) {
+            return "";
+          }
+
+          const source = await response.text();
+          const match = source.match(
+            /window\.APP_VERSION\s*=\s*["']([^"']+)["']/
+          );
+
+          return match ? match[1] : "";
+        } catch (error) {
+          console.warn("Version check unavailable:", error);
+          return "";
+        }
+      }
+
+      async function checkForUpdate() {
+        const deployedVersion =
+          await fetchDeployedVersion();
+
+        if (!deployedVersion) {
           return;
         }
 
-        const notice =
-          document.createElement("div");
-
-        notice.className =
-          "version-update-notice";
-
-        notice.setAttribute(
-          "role",
-          "status"
-        );
-
-        notice.setAttribute(
-          "aria-live",
-          "assertive"
-        );
-
-        notice.innerHTML = `
-          <div class="version-update-spinner"></div>
-          <span>
-            A new version is available. Loading now…
-          </span>
-        `;
-
-        document.body.appendChild(notice);
-      }
-
-      function completeVersionCheck() {
-        const currentVersion =
-          window.APP_VERSION;
-
         const lastUsedVersion =
-          localStorage.getItem(
-            versionStorageKey
-          );
+          localStorage.getItem(versionStorageKey);
 
-        /*
-          First visit on this browser/environment:
-          remember the version without showing a popup.
-        */
         if (!lastUsedVersion) {
           localStorage.setItem(
             versionStorageKey,
-            currentVersion
+            deployedVersion
           );
-
-          sessionStorage.removeItem(
-            refreshGuardKey
-          );
-
           return;
         }
 
-        /*
-          Same version as last time:
-          clear any temporary reload guard.
-        */
+        if (lastUsedVersion === deployedVersion) {
+          sessionStorage.removeItem(
+            dismissedSessionKey
+          );
+          return;
+        }
+
         if (
-          lastUsedVersion ===
-          currentVersion
-        ) {
-          sessionStorage.removeItem(
-            refreshGuardKey
-          );
-
-          return;
-        }
-
-        const guardedVersion =
           sessionStorage.getItem(
-            refreshGuardKey
-          );
-
-        /*
-          Remember the new version before reloading.
-          This prevents an endless update loop.
-        */
-        localStorage.setItem(
-          versionStorageKey,
-          currentVersion
-        );
-
-        showVersionUpdateNotice();
-
-        if (
-          guardedVersion ===
-          currentVersion
+            dismissedSessionKey
+          ) === deployedVersion
         ) {
           return;
         }
 
-        sessionStorage.setItem(
-          refreshGuardKey,
-          currentVersion
-        );
-
-        window.setTimeout(() => {
-          const url =
-            new URL(
-              window.location.href
-            );
-
-          url.searchParams.set(
-            "app-version",
-            currentVersion
-          );
-
-          url.searchParams.set(
-            "refresh",
-            Date.now()
-          );
-
-          window.location.replace(
-            url.toString()
-          );
-        }, 1100);
+        if (
+          typeof window.showAppUpdatePrompt ===
+          "function"
+        ) {
+          window.showAppUpdatePrompt({
+            deployedVersion,
+            versionStorageKey,
+            dismissedSessionKey
+          });
+        }
       }
 
       window.addEventListener(
         "DOMContentLoaded",
-        completeVersionCheck
+        () => {
+          window.setTimeout(
+            checkForUpdate,
+            700
+          );
+
+          window.setInterval(
+            checkForUpdate,
+            10 * 60 * 1000
+          );
+        }
       );
     })();
   </script>
@@ -787,6 +743,56 @@
     </div>
 
   </main>
+
+
+  <div
+    id="appUpdateModal"
+    class="app-update-modal no-print"
+    hidden
+  >
+    <div class="app-update-backdrop"></div>
+
+    <section
+      class="app-update-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="appUpdateTitle"
+    >
+      <div class="app-update-icon" aria-hidden="true">↻</div>
+
+      <h2 id="appUpdateTitle">Update Available</h2>
+
+      <p id="appUpdateMessage">
+        A new version of Staff Timesheet is available.
+      </p>
+
+      <p
+        id="appUpdateUnsavedMessage"
+        class="app-update-warning"
+        hidden
+      >
+        You have unsaved changes. Save your work before updating.
+      </p>
+
+      <div class="app-update-actions">
+        <button
+          id="appUpdateLaterBtn"
+          type="button"
+          class="app-update-later"
+        >
+          Later
+        </button>
+
+        <button
+          id="appUpdateNowBtn"
+          type="button"
+          class="app-update-now"
+        >
+          Update Now
+        </button>
+      </div>
+    </section>
+  </div>
 
   <template id="dayTemplate">
 

@@ -1,7 +1,33 @@
 # 171 Café Staff Timesheet
 
+## Version 3.0.7
+Released: 4 August 2026
+
+### Added
+- Added a clear **Update Available** dialog instead of an easily missed automatic reload notice.
+- Added **Update Now** and **Later** options.
+- Added **Save & Update** when unsaved timesheet changes exist.
+- Added an automatic update check every 10 minutes while the app remains open.
+- Choosing **Later** suppresses the prompt for the remainder of that browser session and allows it to appear again next time the app opens.
+
+### Changed
+- The app no longer forces an immediate update after briefly displaying a message.
+- `docs/CHANGELOG.md` remains the single master changelog.
+
+---
+
 > Master changelog for the project. This file replaces the individual
 > version changelog files as the primary release history.
+
+## Version 3.0.6
+Released: 4 August 2026
+
+### Fixed
+- Reworked the version update detection.
+- Loads version.js with a cache-busting query.
+- Compares the deployed version with the last version stored in the browser.
+- Shows “A new version is available. Loading now…” before refreshing once.
+- Adopted docs/CHANGELOG.md as the single changelog. No new CHANGELOG-v*.txt files are created.
 
 ## Version 3.x
 
@@ -87,7 +113,7 @@
 
 ## Documentation Notes
 
--   Current production version: **3.0.5**
+-   Current production version: **3.0.7**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.
