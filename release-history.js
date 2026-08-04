@@ -1,5 +1,17 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.3",
+    date: "4 August 2026",
+    changes: [
+      "Added a My Profile modal accessible from the username and profile icon.",
+      "Displays username, user ID, role, status, device type and device ID.",
+      "Added Copy controls for the full User ID and Device ID.",
+      "Long IDs are shortened visually while preserving the full value for copying.",
+      "Added mobile-friendly profile styling.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.5.2",
     date: "4 August 2026",
     changes: [

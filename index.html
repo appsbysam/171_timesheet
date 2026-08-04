@@ -1079,6 +1079,56 @@
 
 
 
+  <div id="myProfileModal" class="my-profile-modal no-print" hidden>
+    <div class="my-profile-backdrop" data-close-my-profile></div>
+
+    <section class="my-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="myProfileTitle">
+      <div class="my-profile-header">
+        <div>
+          <h2 id="myProfileTitle">My Profile</h2>
+          <p>Your current user and device details.</p>
+        </div>
+        <button id="closeMyProfileBtn" class="my-profile-close" type="button" aria-label="Close profile">×</button>
+      </div>
+
+      <div class="my-profile-grid">
+        <div class="my-profile-field">
+          <span>Username</span>
+          <strong id="profileUserName">—</strong>
+        </div>
+        <div class="my-profile-field">
+          <span>Role</span>
+          <strong id="profileUserRole">—</strong>
+        </div>
+        <div class="my-profile-field">
+          <span>Status</span>
+          <strong id="profileUserStatus">—</strong>
+        </div>
+        <div class="my-profile-field">
+          <span>Device type</span>
+          <strong id="profileDeviceType">—</strong>
+        </div>
+        <div class="my-profile-field is-wide">
+          <span>User ID</span>
+          <div class="my-profile-copy-row">
+            <code id="profileUserId">—</code>
+            <button type="button" data-copy-profile-value="user">Copy</button>
+          </div>
+        </div>
+        <div class="my-profile-field is-wide">
+          <span>Device ID</span>
+          <div class="my-profile-copy-row">
+            <code id="profileDeviceId">—</code>
+            <button type="button" data-copy-profile-value="device">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="myProfileMessage" class="my-profile-message" aria-live="polite"></p>
+      <button id="myProfileCloseAction" class="my-profile-close-action" type="button">Close</button>
+    </section>
+  </div>
+
   <div
     id="userIdentityModal"
     class="user-identity-modal no-print"

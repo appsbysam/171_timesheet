@@ -1,5 +1,21 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.3
+Released: 4 August 2026
+
+### Added
+- Added a **My Profile** modal.
+- Opens when the user taps their username or profile icon.
+- Displays username, User ID, role, status, device type and Device ID.
+- Added Copy controls for User ID and Device ID.
+- Long identifiers are shortened visually while the full value remains available for copying.
+- Added mobile-friendly styling and outside-tap dismissal.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
 ## Version 3.5.2
 Released: 4 August 2026
 
@@ -433,7 +449,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.5.2**
+-   Current production version: **3.5.3**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

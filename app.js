@@ -309,6 +309,27 @@ const appUpdateUnsavedMessage =
 const appUpdateNowBtn =
   document.getElementById("appUpdateNowBtn");
 
+const myProfileModal =
+  document.getElementById("myProfileModal");
+const closeMyProfileBtn =
+  document.getElementById("closeMyProfileBtn");
+const myProfileCloseAction =
+  document.getElementById("myProfileCloseAction");
+const profileUserName =
+  document.getElementById("profileUserName");
+const profileUserRole =
+  document.getElementById("profileUserRole");
+const profileUserStatus =
+  document.getElementById("profileUserStatus");
+const profileDeviceType =
+  document.getElementById("profileDeviceType");
+const profileUserId =
+  document.getElementById("profileUserId");
+const profileDeviceId =
+  document.getElementById("profileDeviceId");
+const myProfileMessage =
+  document.getElementById("myProfileMessage");
+
 const userIdentityModal =
   document.getElementById("userIdentityModal");
 
@@ -593,6 +614,122 @@ function readStoredUserIdentity() {
     id,
     name
   };
+}
+
+function shortenProfileId(value) {
+  const text = String(value || "");
+
+  if (text.length <= 18) {
+    return text || "Not available";
+  }
+
+  return `${text.slice(0, 8)}…${text.slice(-6)}`;
+}
+
+function setMyProfileMessage(message) {
+  myProfileMessage.textContent = message || "";
+}
+
+function populateMyProfile() {
+  const device = ensureStoredDeviceIdentity();
+
+  const user = resolvedAppUser || {
+    id: localStorage.getItem(USER_ID_STORAGE_KEY),
+    name: localStorage.getItem(USER_NAME_STORAGE_KEY),
+    role:
+      localStorage.getItem(USER_ROLE_STORAGE_KEY) ||
+      "staff",
+    active: true,
+    ...device
+  };
+
+  profileUserName.textContent =
+    user.name || "Not available";
+
+  profileUserRole.textContent =
+    user.role === "manager"
+      ? "Manager"
+      : "Staff";
+
+  profileUserStatus.textContent =
+    user.active === false
+      ? "Inactive"
+      : "Active";
+
+  profileDeviceType.textContent =
+    user.deviceType ||
+    device.deviceType ||
+    "Not available";
+
+  const fullUserId = user.id || "";
+  const fullDeviceId =
+    user.deviceId || device.deviceId || "";
+
+  profileUserId.dataset.fullValue =
+    fullUserId;
+  profileDeviceId.dataset.fullValue =
+    fullDeviceId;
+
+  profileUserId.textContent =
+    shortenProfileId(fullUserId);
+  profileDeviceId.textContent =
+    shortenProfileId(fullDeviceId);
+
+  setMyProfileMessage("");
+}
+
+function openMyProfile() {
+  populateMyProfile();
+  myProfileModal.hidden = false;
+  document.body.classList.add(
+    "my-profile-modal-open"
+  );
+}
+
+function closeMyProfile() {
+  myProfileModal.hidden = true;
+  document.body.classList.remove(
+    "my-profile-modal-open"
+  );
+}
+
+async function copyProfileValue(type) {
+  const source =
+    type === "device"
+      ? profileDeviceId
+      : profileUserId;
+
+  const value =
+    source.dataset.fullValue || "";
+
+  if (!value) {
+    setMyProfileMessage(
+      "No value is available to copy."
+    );
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(value);
+    setMyProfileMessage("Copied");
+
+    window.setTimeout(() => {
+      if (
+        myProfileMessage.textContent ===
+        "Copied"
+      ) {
+        setMyProfileMessage("");
+      }
+    }, 1400);
+  } catch (error) {
+    console.warn(
+      "Unable to copy profile value:",
+      error
+    );
+    setMyProfileMessage(
+      "Unable to copy automatically."
+    );
+  }
 }
 
 function updateHeaderUserIdentity() {
@@ -1000,6 +1137,42 @@ async function ensureAppUserIdentity() {
     identityResolution = resolve;
   });
 }
+
+closeMyProfileBtn.addEventListener(
+  "click",
+  closeMyProfile
+);
+
+myProfileCloseAction.addEventListener(
+  "click",
+  closeMyProfile
+);
+
+myProfileModal
+  .querySelectorAll(
+    "[data-close-my-profile]"
+  )
+  .forEach((element) => {
+    element.addEventListener(
+      "click",
+      closeMyProfile
+    );
+  });
+
+myProfileModal
+  .querySelectorAll(
+    "[data-copy-profile-value]"
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      "click",
+      () => {
+        copyProfileValue(
+          button.dataset.copyProfileValue
+        );
+      }
+    );
+  });
 
 userIdentityForm.addEventListener(
   "submit",
@@ -3124,7 +3297,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.2"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.3"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -3155,13 +3328,21 @@ function addModeBadge() {
     "header-user-version-row";
 
   const headerUser =
-    document.createElement("span");
+    document.createElement("button");
 
-  headerUser.id =
-    "headerUserIdentity";
-
+  headerUser.type = "button";
+  headerUser.id = "headerUserIdentity";
   headerUser.className =
     "header-user-identity";
+  headerUser.title = "View my profile";
+  headerUser.setAttribute(
+    "aria-label",
+    "View my profile"
+  );
+  headerUser.addEventListener(
+    "click",
+    openMyProfile
+  );
 
   versionRow.appendChild(headerUser);
   versionRow.appendChild(version);
