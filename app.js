@@ -127,6 +127,23 @@ const inactiveStaffCount =
 const staffManagerMessage =
   document.getElementById("staffManagerMessage");
 
+const resetPinModal =
+  document.getElementById("resetPinModal");
+const closeResetPinBtn =
+  document.getElementById("closeResetPinBtn");
+const cancelResetPinBtn =
+  document.getElementById("cancelResetPinBtn");
+const confirmResetPinBtn =
+  document.getElementById("confirmResetPinBtn");
+const resetPinTargetText =
+  document.getElementById("resetPinTargetText");
+const resetPinResult =
+  document.getElementById("resetPinResult");
+const resetPinValue =
+  document.getElementById("resetPinValue");
+const resetPinMessage =
+  document.getElementById("resetPinMessage");
+
 const staffOperationStatus =
   document.getElementById("staffOperationStatus");
 
@@ -440,6 +457,7 @@ let managerSessionToken =
   ) || "";
 
 let managerPinSubmitting = false;
+let pendingResetPinMember = null;
 
 
 /* =====================================================
@@ -2464,6 +2482,30 @@ const StaffStorage = {
     }
   },
 
+  async resetManagerPin(id) {
+    if (LOCAL_MODE) {
+      return {
+        success: true,
+        temporary_pin: "0000"
+      };
+    }
+
+    const { data, error } =
+      await db.rpc(
+        "manager_reset_pin",
+        {
+          p_token: managerSessionToken,
+          p_staff_id: id
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  },
+
   async setActive(id, active) {
     const allStaff = await this.loadAll();
 
@@ -3081,7 +3123,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.4.7"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.0"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -4722,6 +4764,21 @@ function createStaffManagerRow(member, index) {
     actions.appendChild(reactivateButton);
   }
 
+  if (member.role === "manager") {
+    const resetPinButton =
+      document.createElement("button");
+    resetPinButton.type = "button";
+    resetPinButton.className =
+      "staff-reset-pin-btn";
+    resetPinButton.textContent =
+      "Reset PIN";
+    resetPinButton.addEventListener(
+      "click",
+      () => openResetPinModal(member)
+    );
+    actions.appendChild(resetPinButton);
+  }
+
   row.append(order, name, actions);
   return row;
 }
@@ -5037,6 +5094,76 @@ function closeChangePinModal() {
     document.body.classList.remove(
       "staff-modal-open"
     );
+  }
+}
+
+function setResetPinMessage(message, isError = false) {
+  resetPinMessage.textContent = message;
+  resetPinMessage.classList.toggle("error", isError);
+}
+
+function openResetPinModal(member) {
+  pendingResetPinMember = member;
+  resetPinTargetText.textContent =
+    `Reset the PIN for ${member.name}?`;
+  resetPinResult.hidden = true;
+  resetPinValue.textContent = "";
+  setResetPinMessage("");
+  confirmResetPinBtn.hidden = false;
+  confirmResetPinBtn.disabled = false;
+  confirmResetPinBtn.textContent = "Reset PIN";
+  cancelResetPinBtn.textContent = "Cancel";
+  resetPinModal.hidden = false;
+  document.body.classList.add("staff-modal-open");
+}
+
+function closeResetPinModal() {
+  resetPinModal.hidden = true;
+  pendingResetPinMember = null;
+}
+
+async function confirmResetPin() {
+  if (!pendingResetPinMember) return;
+
+  const member = pendingResetPinMember;
+
+  try {
+    confirmResetPinBtn.disabled = true;
+    confirmResetPinBtn.textContent = "Resetting...";
+    setResetPinMessage("Resetting manager PIN...");
+
+    const result =
+      await StaffStorage.resetManagerPin(member.id);
+
+    if (!result?.success) {
+      throw new Error(
+        result?.message || "Unable to reset PIN."
+      );
+    }
+
+    resetPinValue.textContent =
+      result.temporary_pin;
+    resetPinResult.hidden = false;
+    setResetPinMessage(
+      `${member.name}'s PIN was reset successfully.`
+    );
+    confirmResetPinBtn.hidden = true;
+    cancelResetPinBtn.textContent = "Close";
+
+    await logImmediateAudit({
+      actionType: "Reset manager PIN",
+      details:
+        `Reset the Manager PIN for ${member.name}.`,
+      employee: member.name
+    });
+  } catch (error) {
+    console.error(error);
+    setResetPinMessage(
+      error.message || "Unable to reset PIN.",
+      true
+    );
+    confirmResetPinBtn.disabled = false;
+    confirmResetPinBtn.textContent = "Reset PIN";
   }
 }
 
@@ -5391,6 +5518,27 @@ managerMenuClearBtn.addEventListener("click", async () => {
 });
 
 closeStaffModalBtn.addEventListener("click", closeStaffModal);
+
+closeResetPinBtn.addEventListener(
+  "click",
+  closeResetPinModal
+);
+cancelResetPinBtn.addEventListener(
+  "click",
+  closeResetPinModal
+);
+confirmResetPinBtn.addEventListener(
+  "click",
+  confirmResetPin
+);
+resetPinModal
+  .querySelectorAll("[data-close-reset-pin]")
+  .forEach((element) => {
+    element.addEventListener(
+      "click",
+      closeResetPinModal
+    );
+  });
 closeManagerLoginBtn.addEventListener("click", () => {
   pendingManagerAction = null;
   closeManagerLogin();

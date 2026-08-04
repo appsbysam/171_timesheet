@@ -4173,3 +4173,84 @@ body.audit-log-modal-open {
   pointer-events: none;
   opacity: 0.68;
 }
+
+
+/* MANAGER PIN RESET — v3.5.0 */
+.staff-reset-pin-btn {
+  border-color: #805b1f !important;
+  background: #fff8e8 !important;
+  color: #6d4810 !important;
+}
+.reset-pin-modal[hidden] { display: none !important; }
+.reset-pin-modal {
+  position: fixed; inset: 0; z-index: 1900;
+  display: grid; place-items: center; padding: 18px;
+}
+.reset-pin-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.66);
+  backdrop-filter: blur(3px);
+}
+.reset-pin-dialog {
+  position: relative; z-index: 1;
+  width: min(100%,430px); padding: 20px;
+  border-radius: 18px; background: #fff;
+  box-shadow: 0 24px 70px rgba(0,0,0,.34);
+}
+.reset-pin-header {
+  display: flex; justify-content: space-between;
+  gap: 12px; padding-bottom: 13px;
+  border-bottom: 1px solid #ddd;
+}
+.reset-pin-header h2 { margin: 0; font-size: 22px; }
+.reset-pin-header p {
+  margin: 5px 0 0; color: #666;
+  font-size: 11px; font-weight: 700;
+}
+.reset-pin-close {
+  width: 38px; height: 38px; padding: 0;
+  border: 0; border-radius: 50%;
+  background: #eee; font-size: 25px;
+}
+.reset-pin-result {
+  margin-top: 15px; padding: 15px;
+  border: 1px solid #a8d4b4;
+  border-radius: 12px;
+  background: #edf9f0; text-align: center;
+}
+.reset-pin-result span {
+  display: block; color: #17652a;
+  font-size: 10px; font-weight: 900;
+  text-transform: uppercase;
+}
+.reset-pin-result strong {
+  display: block; margin-top: 7px;
+  color: #111; font-size: 34px;
+  letter-spacing: 8px;
+}
+.reset-pin-result p {
+  margin: 10px 0 0; color: #365f40;
+  font-size: 11px; font-weight: 700;
+  line-height: 1.4;
+}
+.reset-pin-message {
+  min-height: 18px; margin: 12px 0 0;
+  color: #17652a; font-size: 11px;
+  font-weight: 800;
+}
+.reset-pin-message.error { color: #a61d24; }
+.reset-pin-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 9px; margin-top: 14px;
+}
+.reset-pin-actions button { min-height: 44px; }
+.reset-pin-actions .danger {
+  border-color: #a61d24;
+  background: #c62b35; color: #fff;
+}
+@media (max-width: 460px) {
+  .reset-pin-modal { align-items: end; padding: 0; }
+  .reset-pin-dialog {
+    width: 100%; border-radius: 20px 20px 0 0;
+  }
+}

@@ -1,5 +1,23 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.0
+Released: 4 August 2026
+
+### Added
+- Added **Reset PIN** for manager accounts in Staff Management.
+- Generates a random four-digit temporary PIN.
+- Displays the temporary PIN immediately after reset.
+- Clears failed attempts and any active lockout.
+- Revokes existing sessions for the affected manager.
+- Records the PIN reset in the audit log.
+- Reset PIN is shown only for users with the **Manager** role.
+
+### Database
+- Run `database-update-v3.5.0.sql` in DEV before testing.
+- Run the same migration in Production when deploying Version 3.5.0.
+
+---
+
 ## Version 3.4.7
 Released: 4 August 2026
 
@@ -381,7 +399,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.4.7**
+-   Current production version: **3.5.0**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

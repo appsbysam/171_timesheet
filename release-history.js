@@ -1,5 +1,18 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.0",
+    date: "4 August 2026",
+    changes: [
+      "Added Reset PIN controls for manager accounts in Staff Management.",
+      "Generates a random four-digit temporary PIN.",
+      "Clears failed attempts and active PIN lockouts.",
+      "Revokes the manager's existing active sessions.",
+      "Displays the temporary PIN once for the resetting manager.",
+      "Records the reset action in the audit log.",
+      "Included the required Supabase database function."
+    ]
+  },
+  {
     version: "3.4.7",
     date: "4 August 2026",
     changes: [
