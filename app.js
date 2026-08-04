@@ -3081,7 +3081,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.4.6"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.4.7"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -5558,7 +5558,8 @@ managerLoginForm.addEventListener(
         true
       );
 
-      setManagerPinValue("");
+      managerLoginPin.value = "";
+      updateManagerPinDots();
     } finally {
       managerPinSubmitting = false;
 

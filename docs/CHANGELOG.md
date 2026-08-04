@@ -1,5 +1,18 @@
 # 171 Café Staff Timesheet
 
+## Version 3.4.7
+Released: 4 August 2026
+
+### Fixed
+- Fixed the Manager PIN keypad submitting after the first digit on attempts following an incorrect PIN.
+- The failed four-digit PIN is now cleared directly before the keypad is re-enabled.
+- Every new attempt now waits for four fresh digits before automatically checking the PIN.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
 ## Version 3.4.6
 Released: 4 August 2026
 
@@ -368,7 +381,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.4.6**
+-   Current production version: **3.4.7**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

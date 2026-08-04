@@ -1,5 +1,15 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.4.7",
+    date: "4 August 2026",
+    changes: [
+      "Fixed repeated Manager PIN attempts after an incorrect PIN.",
+      "The failed four-digit PIN is now cleared correctly before the keypad is re-enabled.",
+      "Each new attempt now waits for four fresh digits before auto-submitting.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.4.6",
     date: "4 August 2026",
     changes: [
