@@ -1,5 +1,29 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.2",
+    date: "4 August 2026",
+    changes: [
+      "Fixed the User PIN login error: data is not defined.",
+      "The Supabase PIN response is now stored in the correct scope.",
+      "Temporary-PIN change detection now works after successful login.",
+      "Local-mode PIN login uses the same result structure.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.5.1",
+    date: "4 August 2026",
+    changes: [
+      "Extended PIN access to every active user.",
+      "Managers can reset PINs for staff or managers, active or inactive.",
+      "Reset users receive a random temporary PIN.",
+      "Users must choose a new PIN after signing in with a temporary PIN.",
+      "New staff and managers both require an individual four-digit PIN.",
+      "Manager-only permissions remain restricted to Manager role accounts.",
+      "Included a complete Supabase migration for the new all-user PIN system."
+    ]
+  },
+  {
     version: "3.5.0",
     date: "4 August 2026",
     changes: [

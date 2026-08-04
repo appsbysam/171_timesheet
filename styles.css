@@ -4254,3 +4254,16 @@ body.audit-log-modal-open {
     width: 100%; border-radius: 20px 20px 0 0;
   }
 }
+
+
+/* =====================================================
+   ALL-USER PIN ACCESS — v3.5.1
+   ===================================================== */
+
+.new-manager-pin-fields {
+  display: grid !important;
+}
+
+.staff-reset-pin-btn {
+  white-space: nowrap;
+}

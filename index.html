@@ -610,7 +610,7 @@
             class="manager-menu-change-pin"
             type="button"
           >
-            Change Manager PIN
+            Change PIN
           </button>
 
           <button
@@ -727,7 +727,7 @@
       >
         <div class="manager-login-header">
           <div>
-            <h2 id="managerLoginTitle">Manager PIN</h2>
+            <h2 id="managerLoginTitle">User PIN</h2>
             <p>Enter your four-digit PIN to continue.</p>
           </div>
 
@@ -792,12 +792,12 @@
           </div>
 
           <button id="managerLoginSubmitBtn" type="submit">
-            Unlock Manager Mode
+            Continue
           </button>
         </form>
 
         <p class="manager-pin-help">
-          Forgotten PINs must be reset by another manager or through Supabase support.
+          Forgotten PINs must be reset by a manager.
         </p>
 
         <p
@@ -826,7 +826,7 @@
       >
         <div class="change-pin-header">
           <div>
-            <h2 id="changePinTitle">Change Manager PIN</h2>
+            <h2 id="changePinTitle">Change PIN</h2>
             <p>Choose a new four-digit PIN.</p>
           </div>
 
@@ -893,7 +893,7 @@
       <section class="reset-pin-dialog" role="dialog" aria-modal="true" aria-labelledby="resetPinTitle">
         <div class="reset-pin-header">
           <div>
-            <h2 id="resetPinTitle">Reset Manager PIN</h2>
+            <h2 id="resetPinTitle">Reset PIN</h2>
             <p id="resetPinTargetText">Reset this manager's PIN.</p>
           </div>
           <button id="closeResetPinBtn" class="reset-pin-close" type="button" aria-label="Close reset PIN">×</button>
@@ -1028,15 +1028,15 @@
             </label>
           </fieldset>
 
-          <div id="newManagerPinFields" class="new-manager-pin-fields" hidden>
-            <label for="newStaffPin">Manager PIN</label>
+          <div id="newManagerPinFields" class="new-manager-pin-fields">
+            <label for="newStaffPin">User PIN</label>
             <input
               id="newStaffPin"
               type="password"
               inputmode="numeric"
               pattern="[0-9]{4}"
               maxlength="4"
-              placeholder="4 digits"
+              placeholder="4 digits" required
             />
 
             <label for="newStaffPinConfirm">Confirm PIN</label>
@@ -1046,7 +1046,7 @@
               inputmode="numeric"
               pattern="[0-9]{4}"
               maxlength="4"
-              placeholder="Repeat PIN"
+              placeholder="Repeat PIN" required
             />
           </div>
 

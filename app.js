@@ -449,7 +449,7 @@ let staffToastTimer = null;
 let pendingManagerAction = null;
 
 const MANAGER_SESSION_STORAGE_KEY =
-  "171-timesheet-manager-session-token";
+  "171-timesheet-user-pin-session-token";
 
 let managerSessionToken =
   sessionStorage.getItem(
@@ -458,6 +458,9 @@ let managerSessionToken =
 
 let managerPinSubmitting = false;
 let pendingResetPinMember = null;
+let pinLoginResolution = null;
+let pinLoginPurpose = "app";
+let pinMustChangeAfterLogin = false;
 
 
 /* =====================================================
@@ -2418,9 +2421,7 @@ const StaffStorage = {
           p_role:
             cleanedRole,
           p_pin:
-            cleanedRole === "manager"
-              ? pin
-              : null,
+            pin,
           p_active:
             Boolean(active)
         }
@@ -2482,7 +2483,7 @@ const StaffStorage = {
     }
   },
 
-  async resetManagerPin(id) {
+  async resetUserPin(id) {
     if (LOCAL_MODE) {
       return {
         success: true,
@@ -2492,7 +2493,7 @@ const StaffStorage = {
 
     const { data, error } =
       await db.rpc(
-        "manager_reset_pin",
+        "manager_reset_user_pin",
         {
           p_token: managerSessionToken,
           p_staff_id: id
@@ -3123,7 +3124,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.0"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.2"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -4764,20 +4765,24 @@ function createStaffManagerRow(member, index) {
     actions.appendChild(reactivateButton);
   }
 
-  if (member.role === "manager") {
-    const resetPinButton =
-      document.createElement("button");
-    resetPinButton.type = "button";
-    resetPinButton.className =
-      "staff-reset-pin-btn";
-    resetPinButton.textContent =
-      "Reset PIN";
-    resetPinButton.addEventListener(
-      "click",
-      () => openResetPinModal(member)
-    );
-    actions.appendChild(resetPinButton);
-  }
+  const resetPinButton =
+    document.createElement("button");
+
+  resetPinButton.type = "button";
+  resetPinButton.className =
+    "staff-reset-pin-btn";
+
+  resetPinButton.textContent =
+    "Reset PIN";
+
+  resetPinButton.addEventListener(
+    "click",
+    () => openResetPinModal(member)
+  );
+
+  actions.appendChild(
+    resetPinButton
+  );
 
   row.append(order, name, actions);
   return row;
@@ -4961,7 +4966,7 @@ function openManagerLogin() {
     "manager-pin-user is-ready";
 
   managerPinStatusBar.innerHTML =
-    `Signing in as <strong>${managerName}</strong>`;
+    `Enter PIN for <strong>${managerName}</strong>`;
 
   managerLoginModal.hidden = false;
 
@@ -4985,10 +4990,18 @@ function closeManagerLogin() {
   }
 }
 
-async function getManagerSession() {
+async function getUserPinSession() {
   if (LOCAL_MODE) {
-    return managerSignedIn
-      ? { local: true }
+    return managerSessionToken
+      ? {
+          valid: true,
+          staff_id:
+            resolvedAppUser?.id,
+          name:
+            resolvedAppUser?.name,
+          role:
+            resolvedAppUser?.role || "staff"
+        }
       : null;
   }
 
@@ -4998,24 +5011,14 @@ async function getManagerSession() {
 
   const { data, error } =
     await db.rpc(
-      "manager_validate_session",
+      "user_validate_pin_session",
       {
         p_token:
           managerSessionToken
       }
     );
 
-  if (error) {
-    managerSessionToken = "";
-
-    sessionStorage.removeItem(
-      MANAGER_SESSION_STORAGE_KEY
-    );
-
-    return null;
-  }
-
-  if (!data?.valid) {
+  if (error || !data?.valid) {
     managerSessionToken = "";
 
     sessionStorage.removeItem(
@@ -5026,6 +5029,36 @@ async function getManagerSession() {
   }
 
   return data;
+}
+
+async function getManagerSession() {
+  const session =
+    await getUserPinSession();
+
+  if (
+    !session ||
+    session.role !== "manager"
+  ) {
+    return null;
+  }
+
+  return session;
+}
+
+async function ensureUserPinSession() {
+  const existing =
+    await getUserPinSession();
+
+  if (existing) {
+    return true;
+  }
+
+  pinLoginPurpose = "app";
+  openManagerLogin();
+
+  return new Promise((resolve) => {
+    pinLoginResolution = resolve;
+  });
 }
 
 async function requireManagerSession(
@@ -5040,6 +5073,7 @@ async function requireManagerSession(
   }
 
   managerSignedIn = false;
+  pinLoginPurpose = "manager";
 
   pendingManagerAction =
     typeof onAuthenticated ===
@@ -5130,10 +5164,10 @@ async function confirmResetPin() {
   try {
     confirmResetPinBtn.disabled = true;
     confirmResetPinBtn.textContent = "Resetting...";
-    setResetPinMessage("Resetting manager PIN...");
+    setResetPinMessage("Resetting user PIN...");
 
     const result =
-      await StaffStorage.resetManagerPin(member.id);
+      await StaffStorage.resetUserPin(member.id);
 
     if (!result?.success) {
       throw new Error(
@@ -5151,9 +5185,9 @@ async function confirmResetPin() {
     cancelResetPinBtn.textContent = "Close";
 
     await logImmediateAudit({
-      actionType: "Reset manager PIN",
+      actionType: "Reset user PIN",
       details:
-        `Reset the Manager PIN for ${member.name}.`,
+        `Reset the PIN for ${member.name}.`,
       employee: member.name
     });
   } catch (error) {
@@ -5430,7 +5464,7 @@ changePinForm.addEventListener(
       if (!LOCAL_MODE) {
         const { data, error } =
           await db.rpc(
-            "manager_change_pin",
+            "user_change_pin",
             {
               p_token:
                 managerSessionToken,
@@ -5457,10 +5491,23 @@ changePinForm.addEventListener(
         "PIN changed successfully."
       );
 
-      setTimeout(
-        closeChangePinModal,
-        650
-      );
+      pinMustChangeAfterLogin = false;
+
+      window.setTimeout(() => {
+        closeChangePinModal();
+
+        if (
+          pinLoginPurpose === "app" &&
+          pinLoginResolution
+        ) {
+          pinLoginResolution(true);
+          pinLoginResolution = null;
+        } else if (
+          pinLoginPurpose === "manager"
+        ) {
+          openManagerMenu();
+        }
+      }, 650);
     } catch (error) {
       console.error(error);
 
@@ -5610,18 +5657,9 @@ managerLoginForm.addEventListener(
       return;
     }
 
-    if (
-      !resolvedAppUser?.id ||
-      resolvedAppUser.role !== "manager"
-    ) {
-      setManagerLoginMessage(
-        "The identified user is not a manager.",
-        true
-      );
-      return;
-    }
-
     try {
+      let loginResult = null;
+
       managerPinSubmitting = true;
 
       managerLoginSubmitBtn.disabled = true;
@@ -5638,9 +5676,15 @@ managerLoginForm.addEventListener(
         }
 
         managerSessionToken = "local-manager-session";
+
+        loginResult = {
+          success: true,
+          token: managerSessionToken,
+          must_change: false
+        };
       } else {
         const { data, error } = await db.rpc(
-          "manager_login_with_pin",
+          "user_login_with_pin",
           {
             p_staff_id: resolvedAppUser.id,
             p_pin: pin,
@@ -5653,20 +5697,28 @@ managerLoginForm.addEventListener(
           throw error;
         }
 
-        if (!data?.success) {
+        loginResult = data;
+
+        if (!loginResult?.success) {
           throw new Error(
-            data?.message ||
-            "Unable to unlock Manager Mode."
+            loginResult?.message ||
+            "Unable to continue."
           );
         }
 
-        managerSessionToken = data.token;
+        managerSessionToken =
+          loginResult.token;
       }
 
       sessionStorage.setItem(
         MANAGER_SESSION_STORAGE_KEY,
         managerSessionToken
       );
+
+      pinMustChangeAfterLogin =
+        Boolean(
+          loginResult?.must_change
+        );
 
       setManagerPinStatus(
         `Welcome ${resolvedAppUser.name}`,
@@ -5683,18 +5735,36 @@ managerLoginForm.addEventListener(
 
       closeManagerLogin();
 
-      managerSignedIn = true;
+      managerSignedIn =
+        resolvedAppUser.role === "manager";
+
       autoOpenManagerModeAfterInit = false;
 
       applyManagerControlState();
       applyInactiveRestrictedMode();
+
+      if (pinMustChangeAfterLogin) {
+        openChangePinModal();
+        return;
+      }
+
+      if (
+        pinLoginPurpose === "app" &&
+        pinLoginResolution
+      ) {
+        pinLoginResolution(true);
+        pinLoginResolution = null;
+        return;
+      }
 
       const actionToRun = pendingManagerAction;
       pendingManagerAction = null;
 
       if (actionToRun) {
         await actionToRun();
-      } else {
+      } else if (
+        pinLoginPurpose === "manager"
+      ) {
         openManagerMenu();
       }
     } catch (error) {
@@ -5713,7 +5783,7 @@ managerLoginForm.addEventListener(
 
       managerLoginSubmitBtn.disabled = false;
       managerLoginSubmitBtn.textContent =
-        "Unlock Manager Mode";
+        "Continue";
 
       managerPinKeypad.classList.remove(
         "is-disabled"
@@ -5739,7 +5809,7 @@ async function signOutManager() {
   try {
     if (!LOCAL_MODE && managerSessionToken) {
       await db.rpc(
-        "manager_sign_out",
+        "user_pin_sign_out",
         {
           p_token: managerSessionToken
         }
@@ -5842,22 +5912,11 @@ addStaffForm
             'input[name="newStaffRole"]:checked'
           )?.value || "staff";
 
-        const isManager =
-          role === "manager";
-
         newManagerPinFields.hidden =
-          !isManager;
+          false;
 
-        newStaffPin.required =
-          isManager;
-
-        newStaffPinConfirm.required =
-          isManager;
-
-        if (!isManager) {
-          newStaffPin.value = "";
-          newStaffPinConfirm.value = "";
-        }
+        newStaffPin.required = true;
+        newStaffPinConfirm.required = true;
       }
     );
   });
@@ -5890,24 +5949,22 @@ addStaffForm.addEventListener(
       return;
     }
 
-    if (role === "manager") {
-      if (!/^\d{4}$/.test(pin)) {
-        setStaffManagerMessage(
-          "Manager PIN must contain exactly four digits.",
-          true
-        );
+    if (!/^\d{4}$/.test(pin)) {
+      setStaffManagerMessage(
+        "User PIN must contain exactly four digits.",
+        true
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (pin !== pinConfirm) {
-        setStaffManagerMessage(
-          "The manager PINs do not match.",
-          true
-        );
+    if (pin !== pinConfirm) {
+      setStaffManagerMessage(
+        "The user PINs do not match.",
+        true
+      );
 
-        return;
-      }
+      return;
     }
 
     const addButton =
@@ -5948,12 +6005,6 @@ addStaffForm.addEventListener(
       );
 
       addStaffForm.reset();
-
-      newManagerPinFields.hidden =
-        true;
-
-      newStaffPin.required = false;
-      newStaffPinConfirm.required = false;
 
       newStaffName.focus();
     } else {
@@ -6213,6 +6264,13 @@ async function initialiseApp() {
     await ensureAppUserIdentity();
 
   if (!identityReady) {
+    return;
+  }
+
+  const pinReady =
+    await ensureUserPinSession();
+
+  if (!pinReady) {
     return;
   }
 
