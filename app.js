@@ -43,12 +43,14 @@ const DEFAULT_LOCAL_STAFF = [
     id: "local-mikayla",
     name: "Mikayla",
     active: true,
+    role: "staff",
     display_order: 1
   },
   {
     id: "local-monique",
     name: "Monique",
     active: true,
+    role: "staff",
     display_order: 2
   }
 ];
@@ -218,6 +220,33 @@ const appUpdateUnsavedMessage =
 const appUpdateNowBtn =
   document.getElementById("appUpdateNowBtn");
 
+const userIdentityModal =
+  document.getElementById("userIdentityModal");
+
+const userIdentityForm =
+  document.getElementById("userIdentityForm");
+
+const userIdentityName =
+  document.getElementById("userIdentityName");
+
+const userIdentityMessage =
+  document.getElementById("userIdentityMessage");
+
+const userIdentityContinueBtn =
+  document.getElementById("userIdentityContinueBtn");
+
+const inactiveUserPanel =
+  document.getElementById("inactiveUserPanel");
+
+const inactiveUserMessage =
+  document.getElementById("inactiveUserMessage");
+
+const checkUserAgainBtn =
+  document.getElementById("checkUserAgainBtn");
+
+const inactiveManagerContinueBtn =
+  document.getElementById("inactiveManagerContinueBtn");
+
 let staffMembers = [];
 let saveTimer = null;
 let isLoading = false;
@@ -330,6 +359,641 @@ let staffStatusResetTimer = null;
 let staffToastTimer = null;
 let pendingManagerAction = null;
 
+
+/* =====================================================
+   USER IDENTITY FOUNDATION — v3.1.0
+   ===================================================== */
+
+const USER_ID_STORAGE_KEY =
+  "171-timesheet-user-id";
+
+const USER_NAME_STORAGE_KEY =
+  "171-timesheet-user-name";
+
+const USER_ROLE_STORAGE_KEY =
+  "171-timesheet-user-role";
+
+const DEVICE_ID_STORAGE_KEY =
+  "171-timesheet-device-id";
+
+const DEVICE_TYPE_STORAGE_KEY =
+  "171-timesheet-device-type";
+
+let resolvedAppUser = null;
+let identityResolution = null;
+let inactiveRestrictedMode = false;
+let autoOpenManagerModeAfterInit = false;
+
+let lastSavedAuditSnapshot = new Map();
+let pendingAuditChanges = new Map();
+let pendingAuditWeek = "";
+let auditFlushTimer = null;
+
+const AUDIT_FLUSH_DELAY_MS =
+  60 * 1000;
+
+function createDeviceId() {
+  if (
+    window.crypto &&
+    typeof window.crypto.randomUUID === "function"
+  ) {
+    return window.crypto
+      .randomUUID()
+      .replace(/-/g, "")
+      .slice(0, 12)
+      .toUpperCase();
+  }
+
+  return (
+    Date.now().toString(16) +
+    Math.random().toString(16).slice(2)
+  )
+    .slice(0, 12)
+    .toUpperCase();
+}
+
+function detectDeviceType() {
+  const userAgent =
+    navigator.userAgent || "";
+
+  if (/iPhone/i.test(userAgent)) {
+    return "iPhone";
+  }
+
+  if (/Android/i.test(userAgent)) {
+    return /Mobile/i.test(userAgent)
+      ? "Android phone"
+      : "Android device";
+  }
+
+  if (/iPad/i.test(userAgent)) {
+    return "iPad";
+  }
+
+  return "Mobile device";
+}
+
+function ensureStoredDeviceIdentity() {
+  let deviceId =
+    localStorage.getItem(
+      DEVICE_ID_STORAGE_KEY
+    );
+
+  if (
+    !deviceId ||
+    !/^[A-Z0-9]{8,40}$/.test(deviceId)
+  ) {
+    deviceId = createDeviceId();
+
+    localStorage.setItem(
+      DEVICE_ID_STORAGE_KEY,
+      deviceId
+    );
+  }
+
+  let deviceType =
+    localStorage.getItem(
+      DEVICE_TYPE_STORAGE_KEY
+    );
+
+  if (!deviceType) {
+    deviceType = detectDeviceType();
+
+    localStorage.setItem(
+      DEVICE_TYPE_STORAGE_KEY,
+      deviceType
+    );
+  }
+
+  return {
+    deviceId,
+    deviceType
+  };
+}
+
+function readStoredUserIdentity() {
+  const id =
+    localStorage.getItem(
+      USER_ID_STORAGE_KEY
+    );
+
+  const name =
+    localStorage.getItem(
+      USER_NAME_STORAGE_KEY
+    );
+
+  if (!id || !name) {
+    return null;
+  }
+
+  return {
+    id,
+    name
+  };
+}
+
+function updateHeaderUserIdentity() {
+  const headerUser =
+    document.getElementById(
+      "headerUserIdentity"
+    );
+
+  if (!headerUser) {
+    return;
+  }
+
+  const storedName =
+    localStorage.getItem(
+      USER_NAME_STORAGE_KEY
+    );
+
+  headerUser.textContent =
+    storedName
+      ? `👤 ${storedName}`
+      : "";
+}
+
+function isManagerRole(member) {
+  return (
+    String(member?.role || "staff")
+      .trim()
+      .toLowerCase() === "manager"
+  );
+}
+
+function storeUserIdentity(member) {
+  localStorage.setItem(
+    USER_ID_STORAGE_KEY,
+    String(member.id)
+  );
+
+  localStorage.setItem(
+    USER_NAME_STORAGE_KEY,
+    String(member.name)
+  );
+
+  localStorage.setItem(
+    USER_ROLE_STORAGE_KEY,
+    isManagerRole(member)
+      ? "manager"
+      : "staff"
+  );
+
+  const device =
+    ensureStoredDeviceIdentity();
+
+  resolvedAppUser = {
+    id: String(member.id),
+    name: String(member.name),
+    active: member.active !== false,
+    role:
+      isManagerRole(member)
+        ? "manager"
+        : "staff",
+    ...device
+  };
+
+  updateHeaderUserIdentity();
+
+  return resolvedAppUser;
+}
+
+function clearStoredUserIdentity() {
+  localStorage.removeItem(
+    USER_ID_STORAGE_KEY
+  );
+
+  localStorage.removeItem(
+    USER_NAME_STORAGE_KEY
+  );
+
+  localStorage.removeItem(
+    USER_ROLE_STORAGE_KEY
+  );
+
+  resolvedAppUser = null;
+  updateHeaderUserIdentity();
+}
+
+function showIdentityModal() {
+  userIdentityModal.hidden = false;
+
+  document.body.classList.add(
+    "user-identity-modal-open"
+  );
+}
+
+function hideIdentityModal() {
+  userIdentityModal.hidden = true;
+
+  document.body.classList.remove(
+    "user-identity-modal-open"
+  );
+}
+
+function showIdentityEntry() {
+  showIdentityModal();
+
+  userIdentityForm.hidden = false;
+  inactiveUserPanel.hidden = true;
+
+  userIdentityMessage.textContent = "";
+  userIdentityMessage.classList.remove(
+    "is-error",
+    "is-success"
+  );
+
+  userIdentityContinueBtn.disabled = false;
+  userIdentityContinueBtn.textContent =
+    "Continue";
+
+  window.setTimeout(() => {
+    userIdentityName.focus();
+  }, 50);
+}
+
+function showInactiveUser(member) {
+  showIdentityModal();
+
+  userIdentityForm.hidden = true;
+  inactiveUserPanel.hidden = false;
+
+  inactiveUserMessage.textContent =
+    `Hi ${member.name}. Your username is not yet active. Please ask your manager to activate it. If you are a manager, you can continue and sign in to Manager Mode.`;
+}
+
+async function loadAllIdentityStaff() {
+  return StaffStorage.loadAll();
+}
+
+function findStoredMember(
+  allStaff,
+  storedIdentity
+) {
+  const byId =
+    allStaff.find(
+      (member) =>
+        String(member.id) ===
+        String(storedIdentity.id)
+    );
+
+  if (byId) {
+    return byId;
+  }
+
+  const storedName =
+    String(storedIdentity.name)
+      .trim()
+      .toLocaleLowerCase();
+
+  return allStaff.find(
+    (member) =>
+      String(member.name)
+        .trim()
+        .toLocaleLowerCase() ===
+      storedName
+  );
+}
+
+
+function applyInactiveRestrictedMode() {
+  document.body.classList.toggle(
+    "inactive-user-restricted",
+    inactiveRestrictedMode &&
+    !managerSignedIn
+  );
+
+  if (manageStaffBtn) {
+    manageStaffBtn.hidden = false;
+    manageStaffBtn.disabled = false;
+    manageStaffBtn.textContent =
+      managerSignedIn
+        ? "👤 Manager Mode"
+        : "🔐 Manager Mode";
+  }
+}
+
+function continueInactiveUserToManagerMode() {
+  inactiveRestrictedMode = true;
+  hideIdentityModal();
+
+  if (identityResolution) {
+    identityResolution(true);
+    identityResolution = null;
+  }
+
+  window.setTimeout(() => {
+    applyInactiveRestrictedMode();
+    openManagerLogin();
+  }, 100);
+}
+
+inactiveManagerContinueBtn.addEventListener(
+  "click",
+  continueInactiveUserToManagerMode
+);
+
+async function resolveStoredIdentity() {
+  const storedIdentity =
+    readStoredUserIdentity();
+
+  if (!storedIdentity) {
+    return false;
+  }
+
+  try {
+    const allStaff =
+      await loadAllIdentityStaff();
+
+    const member =
+      findStoredMember(
+        allStaff,
+        storedIdentity
+      );
+
+    if (!member) {
+      clearStoredUserIdentity();
+      return false;
+    }
+
+    storeUserIdentity(member);
+
+    if (
+      member.active === false &&
+      isManagerRole(member)
+    ) {
+      inactiveRestrictedMode = true;
+      autoOpenManagerModeAfterInit = true;
+      hideIdentityModal();
+      return true;
+    }
+
+    if (member.active === false) {
+      showInactiveUser(member);
+      return null;
+    }
+
+    inactiveRestrictedMode = false;
+    autoOpenManagerModeAfterInit = false;
+    hideIdentityModal();
+    return true;
+  } catch (error) {
+    console.error(
+      "Unable to validate stored user:",
+      error
+    );
+
+    showIdentityEntry();
+
+    userIdentityMessage.textContent =
+      "Unable to check your username. Please check your connection and try again.";
+
+    userIdentityMessage.classList.add(
+      "is-error"
+    );
+
+    return null;
+  }
+}
+
+async function submitUserIdentity(name) {
+  const cleanedName =
+    String(name || "").trim();
+
+  if (!cleanedName) {
+    userIdentityMessage.textContent =
+      "Please enter your first name.";
+
+    userIdentityMessage.classList.add(
+      "is-error"
+    );
+
+    return;
+  }
+
+  userIdentityContinueBtn.disabled = true;
+  userIdentityContinueBtn.textContent =
+    "Checking…";
+
+  userIdentityMessage.textContent = "";
+  userIdentityMessage.classList.remove(
+    "is-error",
+    "is-success"
+  );
+
+  try {
+    const allStaff =
+      await loadAllIdentityStaff();
+
+    const normalisedName =
+      cleanedName.toLocaleLowerCase();
+
+    const member =
+      allStaff.find(
+        (person) =>
+          String(person.name)
+            .trim()
+            .toLocaleLowerCase() ===
+          normalisedName
+      );
+
+    if (!member) {
+      userIdentityMessage.textContent =
+        "User not found. Please check the spelling and try again. If the problem persists, contact support.";
+
+      userIdentityMessage.classList.add(
+        "is-error"
+      );
+
+      userIdentityContinueBtn.disabled =
+        false;
+
+      userIdentityContinueBtn.textContent =
+        "Continue";
+
+      userIdentityName.select();
+      return;
+    }
+
+    storeUserIdentity(member);
+
+    if (
+      member.active === false &&
+      isManagerRole(member)
+    ) {
+      inactiveRestrictedMode = true;
+      autoOpenManagerModeAfterInit = true;
+      hideIdentityModal();
+
+      if (identityResolution) {
+        identityResolution(true);
+        identityResolution = null;
+      }
+
+      return;
+    }
+
+    if (member.active === false) {
+      showInactiveUser(member);
+      return;
+    }
+
+    autoOpenManagerModeAfterInit = false;
+
+    userIdentityMessage.textContent =
+      `Welcome, ${member.name}.`;
+
+    userIdentityMessage.classList.add(
+      "is-success"
+    );
+
+    inactiveRestrictedMode = false;
+    hideIdentityModal();
+
+    if (identityResolution) {
+      identityResolution(true);
+      identityResolution = null;
+    }
+  } catch (error) {
+    console.error(
+      "Unable to identify user:",
+      error
+    );
+
+    userIdentityMessage.textContent =
+      "Unable to check your username. Please check your connection and try again.";
+
+    userIdentityMessage.classList.add(
+      "is-error"
+    );
+
+    userIdentityContinueBtn.disabled =
+      false;
+
+    userIdentityContinueBtn.textContent =
+      "Continue";
+  }
+}
+
+async function ensureAppUserIdentity() {
+  ensureStoredDeviceIdentity();
+
+  const storedResult =
+    await resolveStoredIdentity();
+
+  if (storedResult === true) {
+    return true;
+  }
+
+  if (storedResult === null) {
+    return new Promise((resolve) => {
+      identityResolution = resolve;
+    });
+  }
+
+  showIdentityEntry();
+
+  return new Promise((resolve) => {
+    identityResolution = resolve;
+  });
+}
+
+userIdentityForm.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    await submitUserIdentity(
+      userIdentityName.value
+    );
+  }
+);
+
+checkUserAgainBtn.addEventListener(
+  "click",
+  async () => {
+    checkUserAgainBtn.disabled = true;
+    checkUserAgainBtn.textContent =
+      "Checking…";
+
+    try {
+      const storedIdentity =
+        readStoredUserIdentity();
+
+      const allStaff =
+        await loadAllIdentityStaff();
+
+      const member =
+        storedIdentity
+          ? findStoredMember(
+              allStaff,
+              storedIdentity
+            )
+          : null;
+
+      if (!member) {
+        clearStoredUserIdentity();
+        showIdentityEntry();
+
+        userIdentityMessage.textContent =
+          "User not found. Please enter your name again.";
+
+        userIdentityMessage.classList.add(
+          "is-error"
+        );
+
+        return;
+      }
+
+      storeUserIdentity(member);
+
+      if (
+        member.active === false &&
+        isManagerRole(member)
+      ) {
+        inactiveRestrictedMode = true;
+        autoOpenManagerModeAfterInit = true;
+        hideIdentityModal();
+
+        if (identityResolution) {
+          identityResolution(true);
+          identityResolution = null;
+        }
+
+        return;
+      }
+
+      if (member.active === false) {
+        inactiveUserMessage.textContent =
+          `Hi ${member.name}. Your username is still not active. Please ask your manager to activate it. If you are a manager, you can continue and sign in to Manager Mode.`;
+
+        return;
+      }
+
+      inactiveRestrictedMode = false;
+      autoOpenManagerModeAfterInit = false;
+      hideIdentityModal();
+
+      if (identityResolution) {
+        identityResolution(true);
+        identityResolution = null;
+      }
+    } catch (error) {
+      console.error(
+        "Unable to recheck user:",
+        error
+      );
+
+      inactiveUserMessage.textContent =
+        "Unable to check your username. Please check your connection and try again.";
+    } finally {
+      checkUserAgainBtn.disabled = false;
+      checkUserAgainBtn.textContent =
+        "Check Again";
+    }
+  }
+);
+
 /* =====================================================
    LOCAL STORAGE KEYS
    ===================================================== */
@@ -358,6 +1022,473 @@ function sortStaffMembers(staff) {
 
     return String(a.name).localeCompare(String(b.name));
   });
+}
+
+
+/* =====================================================
+   AUDIT LOG — v3.2.0
+   ===================================================== */
+
+const AuditStorage = {
+  async insert(entry) {
+    if (LOCAL_MODE) {
+      const key =
+        "171-timesheet-local-audit-log";
+
+      const existing =
+        JSON.parse(
+          localStorage.getItem(key) ||
+          "[]"
+        );
+
+      existing.push({
+        id:
+          typeof crypto?.randomUUID ===
+          "function"
+            ? crypto.randomUUID()
+            : String(Date.now()),
+
+        created_at:
+          new Date().toISOString(),
+
+        ...entry
+      });
+
+      localStorage.setItem(
+        key,
+        JSON.stringify(existing)
+      );
+
+      return;
+    }
+
+    const { error } =
+      await db
+        .from("audit_log")
+        .insert(entry);
+
+    if (error) {
+      throw error;
+    }
+  }
+};
+
+function normaliseAuditValue(value) {
+  return value == null
+    ? ""
+    : String(value);
+}
+
+function formatAuditTime(value) {
+  if (!value) {
+    return "blank";
+  }
+
+  const [hours, minutes] =
+    String(value)
+      .split(":")
+      .map(Number);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes)
+  ) {
+    return String(value);
+  }
+
+  const suffix =
+    hours >= 12 ? "pm" : "am";
+
+  const displayHour =
+    hours % 12 || 12;
+
+  return `${displayHour}:${String(
+    minutes
+  ).padStart(2, "0")} ${suffix}`;
+}
+
+function buildAuditSnapshot(rows) {
+  const snapshot = new Map();
+
+  let metadata = {};
+
+  try {
+    metadata =
+      JSON.parse(
+        rows[0]?.notes || "{}"
+      );
+  } catch {
+    metadata = {};
+  }
+
+  const splitShifts =
+    metadata.splitShifts || {};
+
+  rows.forEach((row) => {
+    const baseKey =
+      `${row.employee}::${row.day}`;
+
+    const split =
+      splitShifts[baseKey] || {};
+
+    snapshot.set(
+      `${baseKey}::start`,
+      {
+        employee: row.employee,
+        day: row.day,
+        field: "Start",
+        value:
+          normaliseAuditValue(
+            row.start_time
+          )
+      }
+    );
+
+    snapshot.set(
+      `${baseKey}::finish`,
+      {
+        employee: row.employee,
+        day: row.day,
+        field: "Finish",
+        value:
+          normaliseAuditValue(
+            row.finish_time
+          )
+      }
+    );
+
+    snapshot.set(
+      `${baseKey}::split_start`,
+      {
+        employee: row.employee,
+        day: row.day,
+        field: "Split start",
+        value:
+          normaliseAuditValue(
+            split.start
+          )
+      }
+    );
+
+    snapshot.set(
+      `${baseKey}::split_finish`,
+      {
+        employee: row.employee,
+        day: row.day,
+        field: "Split finish",
+        value:
+          normaliseAuditValue(
+            split.finish
+          )
+      }
+    );
+  });
+
+  return snapshot;
+}
+
+function collectAuditDifferences(
+  previousSnapshot,
+  nextSnapshot
+) {
+  const differences = [];
+
+  const keys =
+    new Set([
+      ...previousSnapshot.keys(),
+      ...nextSnapshot.keys()
+    ]);
+
+  keys.forEach((key) => {
+    const previous =
+      previousSnapshot.get(key);
+
+    const next =
+      nextSnapshot.get(key);
+
+    const oldValue =
+      previous?.value || "";
+
+    const newValue =
+      next?.value || "";
+
+    if (oldValue === newValue) {
+      return;
+    }
+
+    const reference =
+      next || previous;
+
+    differences.push({
+      key,
+      employee:
+        reference.employee,
+      day:
+        reference.day,
+      field:
+        reference.field,
+      oldValue,
+      newValue
+    });
+  });
+
+  return differences;
+}
+
+function mergePendingAuditChanges(
+  week,
+  differences
+) {
+  if (!differences.length) {
+    return;
+  }
+
+  if (
+    pendingAuditWeek &&
+    pendingAuditWeek !== week
+  ) {
+    flushPendingAudit();
+  }
+
+  pendingAuditWeek = week;
+
+  differences.forEach((change) => {
+    const existing =
+      pendingAuditChanges.get(
+        change.key
+      );
+
+    if (existing) {
+      existing.newValue =
+        change.newValue;
+
+      if (
+        existing.oldValue ===
+        existing.newValue
+      ) {
+        pendingAuditChanges.delete(
+          change.key
+        );
+      }
+
+      return;
+    }
+
+    pendingAuditChanges.set(
+      change.key,
+      { ...change }
+    );
+  });
+
+  scheduleAuditFlush();
+}
+
+function scheduleAuditFlush() {
+  clearTimeout(auditFlushTimer);
+
+  auditFlushTimer =
+    setTimeout(
+      () => {
+        flushPendingAudit();
+      },
+      AUDIT_FLUSH_DELAY_MS
+    );
+}
+
+function buildAuditDetails(changes) {
+  return changes
+    .map((change) => {
+      const oldDisplay =
+        formatAuditTime(
+          change.oldValue
+        );
+
+      const newDisplay =
+        formatAuditTime(
+          change.newValue
+        );
+
+      return (
+        `${change.day} — ` +
+        `${change.employee} — ` +
+        `${change.field}: ` +
+        `${oldDisplay} → ${newDisplay}`
+      );
+    })
+    .join("\n");
+}
+
+async function flushPendingAudit() {
+  clearTimeout(auditFlushTimer);
+  auditFlushTimer = null;
+
+  if (
+    !pendingAuditChanges.size ||
+    !pendingAuditWeek ||
+    !resolvedAppUser
+  ) {
+    return true;
+  }
+
+  const changes =
+    [...pendingAuditChanges.values()];
+
+  const entry = {
+    changed_by_staff_id:
+      resolvedAppUser.id || null,
+
+    changed_by_name:
+      resolvedAppUser.name,
+
+    device_id:
+      resolvedAppUser.deviceId || null,
+
+    device_type:
+      resolvedAppUser.deviceType || null,
+
+    action_type:
+      "Updated timesheet",
+
+    performed_role:
+      managerSignedIn
+        ? "Manager"
+        : "Staff",
+
+    week_start:
+      pendingAuditWeek,
+
+    employee_name:
+      changes.length === 1
+        ? changes[0].employee
+        : null,
+
+    day_name:
+      changes.length === 1
+        ? changes[0].day
+        : null,
+
+    field_name:
+      changes.length === 1
+        ? changes[0].field
+        : null,
+
+    old_value:
+      changes.length === 1
+        ? changes[0].oldValue || null
+        : null,
+
+    new_value:
+      changes.length === 1
+        ? changes[0].newValue || null
+        : null,
+
+    details:
+      buildAuditDetails(changes),
+
+    environment:
+      window.APP_CONFIG.environment ||
+      (
+        window.APP_CONFIG.isDevelopment
+          ? "development"
+          : "production"
+      )
+  };
+
+  try {
+    await AuditStorage.insert(entry);
+
+    pendingAuditChanges.clear();
+    pendingAuditWeek = "";
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Unable to save audit log:",
+      error
+    );
+
+    scheduleAuditFlush();
+    return false;
+  }
+}
+
+function resetAuditBaseline(rows) {
+  lastSavedAuditSnapshot =
+    buildAuditSnapshot(rows);
+}
+
+async function logImmediateAudit({
+  actionType,
+  week = null,
+  details = null,
+  employee = null,
+  day = null,
+  field = null,
+  oldValue = null,
+  newValue = null
+}) {
+  if (!resolvedAppUser) {
+    return;
+  }
+
+  await flushPendingAudit();
+
+  try {
+    await AuditStorage.insert({
+      changed_by_staff_id:
+        resolvedAppUser.id || null,
+
+      changed_by_name:
+        resolvedAppUser.name,
+
+      device_id:
+        resolvedAppUser.deviceId || null,
+
+      device_type:
+        resolvedAppUser.deviceType || null,
+
+      action_type:
+        actionType,
+
+      performed_role:
+        managerSignedIn
+          ? "Manager"
+          : "Staff",
+
+      week_start:
+        week,
+
+      employee_name:
+        employee,
+
+      day_name:
+        day,
+
+      field_name:
+        field,
+
+      old_value:
+        oldValue,
+
+      new_value:
+        newValue,
+
+      details,
+
+      environment:
+        window.APP_CONFIG.environment ||
+        (
+          window.APP_CONFIG.isDevelopment
+            ? "development"
+            : "production"
+        )
+    });
+  } catch (error) {
+    console.error(
+      "Unable to save immediate audit entry:",
+      error
+    );
+  }
 }
 
 const TimesheetStorage = {
@@ -517,7 +1648,7 @@ const StaffStorage = {
 
     const { data, error } = await db
       .from("staff_members")
-      .select("id, name, active, created_at, display_order")
+      .select("id, name, active, role, created_at, display_order")
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true });
 
@@ -558,6 +1689,7 @@ const StaffStorage = {
         id: `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
         name: cleanedName,
         active: true,
+        role: "staff",
         display_order: nextOrder,
         created_at: new Date().toISOString()
       };
@@ -572,6 +1704,7 @@ const StaffStorage = {
       .insert({
         name: cleanedName,
         active: true,
+        role: "staff",
         display_order: nextOrder
       })
       .select("id, name, active, created_at, display_order")
@@ -797,6 +1930,21 @@ async function copyPreviousWeek() {
       destinationWeek,
       copiedRows
     );
+
+    resetAuditBaseline(
+      collectRows()
+    );
+
+    await logImmediateAudit({
+      actionType:
+        "Copied previous week",
+
+      week:
+        destinationWeek,
+
+      details:
+        `Copied timesheet entries from week starting ${formatDateForMessage(sourceWeek)} into week starting ${formatDateForMessage(destinationWeek)}.`
+    });
 
     setSaveButtonState("saved");
 
@@ -1109,6 +2257,7 @@ function applyManagerControlState() {
   }
 
   updateClearButtonState();
+  applyInactiveRestrictedMode();
 }
 
 async function refreshManagerControlState() {
@@ -1208,7 +2357,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.0.8"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.2.2"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -1232,10 +2381,30 @@ function addModeBadge() {
 
   badgeRow.appendChild(badge);
 
+  const versionRow =
+    document.createElement("div");
+
+  versionRow.className =
+    "header-user-version-row";
+
+  const headerUser =
+    document.createElement("span");
+
+  headerUser.id =
+    "headerUserIdentity";
+
+  headerUser.className =
+    "header-user-identity";
+
+  versionRow.appendChild(headerUser);
+  versionRow.appendChild(version);
+
   wrapper.appendChild(badgeRow);
-  wrapper.appendChild(version);
+  wrapper.appendChild(versionRow);
 
   header.appendChild(wrapper);
+
+  updateHeaderUserIdentity();
 }
 
 
@@ -1567,6 +2736,8 @@ async function goToCurrentWeek() {
   if (goToCurrentWeekBtn.disabled) {
     return;
   }
+
+  await flushPendingAudit();
 
   weekStart.value =
     getCurrentWeekStartValue();
@@ -2226,6 +3397,15 @@ async function save() {
 
   const rows = collectRows();
 
+  const nextAuditSnapshot =
+    buildAuditSnapshot(rows);
+
+  const auditDifferences =
+    collectAuditDifferences(
+      lastSavedAuditSnapshot,
+      nextAuditSnapshot
+    );
+
   try {
     setSaveButtonState("saving");
 
@@ -2251,6 +3431,14 @@ async function save() {
       false,
       "saved"
     );
+
+    mergePendingAuditChanges(
+      weekStart.value,
+      auditDifferences
+    );
+
+    lastSavedAuditSnapshot =
+      nextAuditSnapshot;
 
     updateClearButtonState();
     closeManagerMenu();
@@ -2476,6 +3664,10 @@ async function load() {
 
     applyTimesheetData(
       timesheetData
+    );
+
+    resetAuditBaseline(
+      collectRows()
     );
 
     setSaveButtonState("saved");
@@ -3059,7 +4251,9 @@ managerLoginForm.addEventListener("submit", async (event) => {
     closeManagerLogin();
 
     managerSignedIn = true;
+    autoOpenManagerModeAfterInit = false;
     applyManagerControlState();
+    applyInactiveRestrictedMode();
 
     const actionToRun = pendingManagerAction;
     pendingManagerAction = null;
@@ -3085,6 +4279,7 @@ async function signOutManager() {
   if (LOCAL_MODE) {
     managerSignedIn = false;
     applyManagerControlState();
+    applyInactiveRestrictedMode();
     closeStaffModal();
     closeManagerMenu();
     return;
@@ -3310,6 +4505,17 @@ async function clearSelectedWeek() {
       "saved"
     );
 
+    resetAuditBaseline(
+      collectRows()
+    );
+
+    await logImmediateAudit({
+      actionType: "Cleared week",
+      week: weekStart.value,
+      details:
+        "All saved timesheet entries for the selected week were cleared."
+    });
+
     updateClearButtonState();
   } catch (error) {
     console.error(error);
@@ -3349,10 +4555,12 @@ resetBtn
     }
   );
 
-function changeWeek(daysToAdd) {
+async function changeWeek(daysToAdd) {
   if (!weekStart.value) {
     return;
   }
+
+  await flushPendingAudit();
 
   weekStart.value =
     addDaysToDateString(
@@ -3362,7 +4570,7 @@ function changeWeek(daysToAdd) {
 
   updateWeekEnd();
   updateCurrentWeekHighlight();
-  load();
+  await load();
 }
 
 document
@@ -3392,12 +4600,39 @@ goToCurrentWeekBtn.addEventListener(
   goToCurrentWeek
 );
 
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (
+      document.visibilityState ===
+      "hidden"
+    ) {
+      flushPendingAudit();
+    }
+  }
+);
+
+window.addEventListener(
+  "pagehide",
+  () => {
+    flushPendingAudit();
+  }
+);
+
 /* =====================================================
    START APPLICATION
    ===================================================== */
 
 async function initialiseApp() {
   addModeBadge();
+
+  const identityReady =
+    await ensureAppUserIdentity();
+
+  if (!identityReady) {
+    return;
+  }
 
   const today = new Date();
 
@@ -3419,6 +4654,17 @@ async function initialiseApp() {
   await refreshManagerControlState();
   await load();
   updateClearButtonState();
+  applyInactiveRestrictedMode();
+
+  if (autoOpenManagerModeAfterInit) {
+    window.setTimeout(() => {
+      if (managerSignedIn) {
+        openManagerMenu();
+      } else {
+        openManagerLogin();
+      }
+    }, 150);
+  }
 }
 
 if (!LOCAL_MODE) {

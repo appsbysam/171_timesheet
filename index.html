@@ -761,6 +761,84 @@
   </main>
 
 
+
+  <div
+    id="userIdentityModal"
+    class="user-identity-modal no-print"
+    hidden
+  >
+    <div class="user-identity-backdrop"></div>
+
+    <section
+      class="user-identity-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="userIdentityTitle"
+    >
+      <div class="user-identity-icon" aria-hidden="true">👤</div>
+
+      <h2 id="userIdentityTitle">Welcome to Staff Timesheet</h2>
+
+      <p id="userIdentityIntro">
+        Please enter your first name to continue.
+      </p>
+
+      <form id="userIdentityForm" class="user-identity-form">
+        <label for="userIdentityName">First name</label>
+
+        <input
+          id="userIdentityName"
+          type="text"
+          maxlength="80"
+          autocomplete="given-name"
+          autocapitalize="words"
+          spellcheck="false"
+          required
+        />
+
+        <p
+          id="userIdentityMessage"
+          class="user-identity-message"
+          aria-live="polite"
+        ></p>
+
+        <button
+          id="userIdentityContinueBtn"
+          type="submit"
+          class="user-identity-continue"
+        >
+          Continue
+        </button>
+      </form>
+
+      <div
+        id="inactiveUserPanel"
+        class="inactive-user-panel"
+        hidden
+      >
+        <p id="inactiveUserMessage"></p>
+
+        <div class="inactive-user-actions">
+          <button
+            id="inactiveManagerContinueBtn"
+            type="button"
+            class="inactive-manager-continue-btn"
+          >
+            Continue to Manager Mode
+          </button>
+
+          <button
+            id="checkUserAgainBtn"
+            type="button"
+            class="check-user-again-btn"
+          >
+            Check Again
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <div
     id="appUpdateModal"
     class="app-update-modal no-print"

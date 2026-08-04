@@ -1,5 +1,71 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.2.2",
+    date: "4 August 2026",
+    changes: [
+      "Added staff and manager roles to staff records.",
+      "Inactive managers now bypass the inactive-user prompt.",
+      "Inactive managers are taken directly to Manager Mode authentication.",
+      "An existing valid manager session opens Manager Mode immediately.",
+      "Inactive non-managers continue to see the activation screen."
+    ]
+  },
+  {
+    version: "3.2.1",
+    date: "4 August 2026",
+    changes: [
+      "Added the role used when performing each audited action.",
+      "Audit entries now record Staff or Manager in performed_role.",
+      "Manager corrections can now be distinguished from ordinary staff updates.",
+      "Grouped-event detail fields remain NULL when multiple staff, days or fields are included."
+    ]
+  },
+  {
+    version: "3.2.0",
+    date: "4 August 2026",
+    changes: [
+      "Added audit logging for timesheet changes.",
+      "Kept the existing automatic saving behaviour.",
+      "Groups auto-saved changes into one readable audit event after 60 seconds of inactivity.",
+      "Flushes pending audit changes when switching weeks or leaving the app.",
+      "Records user name, staff ID, device ID and device type in the background.",
+      "Added immediate audit records for Clear Week and Copy Previous Week."
+    ]
+  },
+  {
+    version: "3.1.2",
+    date: "4 August 2026",
+    changes: [
+      "Added the identified staff name beside the version number in the header.",
+      "The displayed name uses the official staff spelling stored by the identity system.",
+      "The header updates immediately after identification or identity reset.",
+      "Kept the display compact on both desktop and mobile."
+    ]
+  },
+  {
+    version: "3.1.1",
+    date: "4 August 2026",
+    changes: [
+      "Added a recovery path for inactive users who are managers.",
+      "Inactive staff details remain stored for the future audit log.",
+      "Inactive users can continue into a restricted app and sign in to Manager Mode.",
+      "Normal timesheet controls remain unavailable until manager authentication succeeds.",
+      "Signing out returns an inactive user to restricted mode."
+    ]
+  },
+  {
+    version: "3.1.0",
+    date: "4 August 2026",
+    changes: [
+      "Added one-time staff identification on each phone.",
+      "Names are checked case-insensitively against all staff records.",
+      "Active users continue directly into the app.",
+      "Inactive users are remembered and shown a Check Again activation screen.",
+      "Added a silently generated device ID and automatically detected device type.",
+      "Stored staff ID and official database name for the future audit log."
+    ]
+  },
+  {
     version: "3.0.9",
     date: "4 August 2026",
     changes: [

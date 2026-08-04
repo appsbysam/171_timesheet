@@ -1,5 +1,101 @@
 # 171 Café Staff Timesheet
 
+## Version 3.2.2
+Released: 4 August 2026
+
+### Added
+- Added `role` support to staff records with the values **staff** and **manager**.
+- Inactive users whose role is **manager** now bypass the inactive-user screen.
+- Inactive managers are taken directly to Manager Mode sign-in.
+- If a valid manager session already exists, Manager Mode opens immediately.
+- Inactive non-manager users continue to see the normal activation message.
+- Newly added staff members default to the **staff** role.
+
+### Database
+Run the supplied `database-update-v3.2.2.sql` once in the DEV Supabase SQL Editor before testing.
+
+---
+
+## Version 3.2.1
+Released: 4 August 2026
+
+### Added
+- Added `performed_role` to each audit record.
+- Records **Manager** when the action occurs during an authenticated Manager Mode session.
+- Records **Staff** for ordinary timesheet activity.
+- Makes manager corrections distinguishable from changes made by regular staff.
+
+### Clarified
+- `employee_name`, `day_name`, `field_name`, `old_value`, and `new_value` remain blank for grouped audit events containing multiple changes.
+- The complete grouped summary continues to be stored in `details`.
+
+### Database
+Run the supplied `database-update-v3.2.1.sql` once in the DEV Supabase SQL Editor before testing this version.
+
+---
+
+## Version 3.2.0
+Released: 4 August 2026
+
+### Added
+- Added audit logging for timesheet updates.
+- Preserved automatic saving for safety.
+- Groups multiple auto-saved edits into one audit event after 60 seconds without further changes.
+- Records the identified staff member, staff ID, device ID and device type with each audit event.
+- Stores a readable before-and-after change summary in the audit log.
+- Flushes pending audit changes before changing weeks and when the app is moved into the background.
+- Added immediate audit entries for **Clear Week** and **Copy Previous Week**.
+
+### Notes
+- This release writes audit records to the existing `audit_log` table.
+- The Manager Mode audit viewer will be added separately after audit recording is tested.
+
+---
+
+## Version 3.1.2
+Released: 4 August 2026
+
+### Added
+- Displays the identified staff member beside the version number in the app header.
+- Uses the official staff name stored by the identity system.
+- Updates the header immediately after successful identification.
+- Keeps the user display compact on desktop and mobile.
+
+---
+
+## Version 3.1.1
+Released: 4 August 2026
+
+### Fixed
+- Removed the inactive-user dead end that prevented access to Manager Mode.
+- Inactive users are still identified and stored locally for future audit records.
+- Added **Continue to Manager Mode** for inactive users.
+- The app opens in a restricted state where normal timesheet controls are unavailable.
+- A manager can sign in and receive full Manager Mode access.
+- Signing out returns an inactive user to restricted mode.
+- Retained **Check Again** so activation can be detected without re-entering the name.
+
+---
+
+## Version 3.1.0
+Released: 4 August 2026
+
+### Added
+- Added a one-time first-name prompt on each phone.
+- Checks the entered name case-insensitively against all staff records, including active and inactive staff.
+- Stores the official staff ID and database spelling locally after a successful match.
+- Active users continue into the timesheet.
+- Inactive users are remembered and shown a **Check Again** screen until a manager activates them.
+- Generates and stores an anonymous device ID silently.
+- Detects and stores a simple device type such as **Android phone** or **iPhone**.
+- Repeats the identification process if the stored staff identity is missing or invalid.
+
+### Foundation
+- Establishes the user and device identity required for the upcoming audit log.
+- This release does not yet create or write to an audit table.
+
+---
+
 ## Version 3.0.9
 Released: 4 August 2026
 
@@ -136,7 +232,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.0.9**
+-   Current production version: **3.2.2**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

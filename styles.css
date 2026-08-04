@@ -3115,3 +3115,293 @@ body.app-update-modal-open {
 .app-update-backdrop {
   cursor: default;
 }
+
+
+/* =====================================================
+   USER IDENTITY FOUNDATION — v3.1.0
+   ===================================================== */
+
+.user-identity-modal[hidden] {
+  display: none !important;
+}
+
+.user-identity-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2300;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.user-identity-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.user-identity-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+  padding: 24px;
+  border: 1px solid #c7d8cb;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34);
+  text-align: center;
+}
+
+.user-identity-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 13px;
+  border-radius: 50%;
+  background: #e6f7eb;
+  font-size: 29px;
+}
+
+.user-identity-dialog h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.user-identity-dialog > p {
+  margin: 11px 0 0;
+  color: #555;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.user-identity-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 19px;
+  text-align: left;
+}
+
+.user-identity-form label {
+  font-size: 11px;
+}
+
+.user-identity-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #999;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.user-identity-form input:focus {
+  border-color: #16883d;
+  outline: 3px solid rgba(31, 166, 75, 0.16);
+}
+
+.user-identity-message {
+  min-height: 19px;
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.user-identity-message.is-error {
+  color: #a61d24;
+}
+
+.user-identity-message.is-success {
+  color: #17652a;
+}
+
+.user-identity-continue,
+.check-user-again-btn {
+  min-height: 47px;
+  border-color: #13863a;
+  border-radius: 10px;
+  background: #1fa64b;
+  color: #fff;
+  cursor: pointer;
+}
+
+.user-identity-continue:hover:not(:disabled),
+.check-user-again-btn:hover:not(:disabled) {
+  background: #16883d;
+}
+
+.user-identity-continue:disabled,
+.check-user-again-btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.inactive-user-panel {
+  margin-top: 18px;
+}
+
+.inactive-user-panel p {
+  margin: 0;
+  padding: 13px;
+  border: 1px solid #e3bd72;
+  border-radius: 11px;
+  background: #fff7df;
+  color: #755000;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.check-user-again-btn {
+  width: 100%;
+  margin-top: 13px;
+}
+
+body.user-identity-modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 460px) {
+  .user-identity-modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .user-identity-dialog {
+    width: 100%;
+    padding: 22px 17px 19px;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .user-identity-dialog h2 {
+    font-size: 22px;
+  }
+
+  .user-identity-form input {
+    font-size: 16px;
+  }
+}
+
+@media print {
+  .user-identity-modal {
+    display: none !important;
+  }
+}
+
+
+/* =====================================================
+   INACTIVE MANAGER ACCESS — v3.1.1
+   ===================================================== */
+
+.inactive-user-actions {
+  display: grid;
+  gap: 9px;
+  margin-top: 13px;
+}
+
+.inactive-manager-continue-btn {
+  width: 100%;
+  min-height: 47px;
+  border-color: #263f75;
+  border-radius: 10px;
+  background: #315a9a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.inactive-manager-continue-btn:hover {
+  background: #274a82;
+}
+
+.inactive-user-actions .check-user-again-btn {
+  margin-top: 0;
+  border-color: #8b8f96;
+  background: #f1f2f4;
+  color: #333;
+}
+
+body.inactive-user-restricted .week-card,
+body.inactive-user-restricted .timesheet,
+body.inactive-user-restricted .summary-card,
+body.inactive-user-restricted .manager-card,
+body.inactive-user-restricted .status-indicator,
+body.inactive-user-restricted .toolbar > :not(.manage-staff-btn) {
+  opacity: 0.42;
+  pointer-events: none;
+  user-select: none;
+}
+
+body.inactive-user-restricted .manage-staff-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.inactive-user-restricted .toolbar {
+  grid-template-columns: 1fr;
+}
+
+body.inactive-user-restricted .toolbar .manage-staff-btn {
+  min-height: 46px;
+}
+
+@media (max-width: 460px) {
+  body.inactive-user-restricted .toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =====================================================
+   HEADER USER IDENTITY — v3.1.2
+   ===================================================== */
+
+.header-user-version-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  width: 100%;
+}
+
+.header-user-identity {
+  min-width: 0;
+  overflow: hidden;
+  color: #8a8a8a;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-user-version-row .app-version {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 460px) {
+  .header-user-version-row {
+    gap: 9px;
+  }
+
+  .header-user-identity {
+    max-width: 100px;
+    font-size: 9px;
+  }
+}
+
+@media print {
+  .header-user-identity {
+    display: none !important;
+  }
+}
