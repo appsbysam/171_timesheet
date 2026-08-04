@@ -1,5 +1,99 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.4.6",
+    date: "4 August 2026",
+    changes: [
+      "Manager PIN login now submits automatically after the fourth digit.",
+      "The keypad is temporarily disabled while the PIN is being checked.",
+      "Extra keypad taps are ignored during validation.",
+      "Incorrect PIN attempts clear the PIN and allow a fresh attempt.",
+      "The Unlock Manager Mode button remains available as a fallback.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.4.5",
+    date: "4 August 2026",
+    changes: [
+      "Moved all Manager PIN feedback into the existing signing-in status bar.",
+      "Incorrect PIN messages now appear prominently in red.",
+      "Checking PIN uses a blue status state.",
+      "Lockout messages use an orange warning state.",
+      "Successful login briefly shows Welcome before opening Manager Mode.",
+      "Removed the visible lower error message area.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.4.4",
+    date: "4 August 2026",
+    changes: [
+      "Added Active or Inactive selection when creating a new user.",
+      "New users default to Active.",
+      "Added visible feedback while a user is being added.",
+      "Added success and error feedback after user creation.",
+      "Added a Signing out status and disabled sign-out buttons during the operation.",
+      "Included the required Supabase function update."
+    ]
+  },
+  {
+    version: "3.4.3",
+    date: "4 August 2026",
+    changes: [
+      "Improved Manager PIN keypad readability.",
+      "Changed keypad buttons to a medium green background with white text.",
+      "Changed filled PIN indicators to match the green app theme.",
+      "Stopped the phone's native numeric keyboard from opening while using the custom PIN keypad.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.4.2",
+    date: "4 August 2026",
+    changes: [
+      "Fixed desktop Manager PIN entry adding two digits for every keypad press.",
+      "Removed a duplicated PIN keypad event listener.",
+      "Kept mobile PIN behaviour unchanged.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.4.1",
+    date: "4 August 2026",
+    changes: [
+      "Reworked manager session storage to avoid the unavailable digest function.",
+      "Manager sessions now use secure random session tokens stored directly in the protected session table.",
+      "Qualified pgcrypto functions through the Supabase extensions schema.",
+      "Retained individual Manager PINs, lockouts, PIN changes and expiring sessions.",
+      "Included a complete replacement database migration for Version 3.4.1."
+    ]
+  },
+  {
+    version: "3.4.0",
+    date: "4 August 2026",
+    changes: [
+      "Replaced manager email/password entry with an individual four-digit PIN.",
+      "Added a phone-friendly numeric PIN keypad.",
+      "Added secure server-side PIN verification, lockouts and expiring manager sessions.",
+      "Added Staff/Manager role selection when creating a user.",
+      "Managers require an individual PIN when created.",
+      "Added Change Manager PIN inside Manager Mode.",
+      "Updated staff management and audit viewing to use protected manager database functions."
+    ]
+  },
+  {
+    version: "3.3.0",
+    date: "4 August 2026",
+    changes: [
+      "Added a manager-only Audit Log Viewer.",
+      "Displays newest audit records first in readable mobile-friendly cards.",
+      "Added action, user and date-range filters.",
+      "Added Staff and Manager role badges.",
+      "Device ID, device type, environment and record ID are hidden under expandable details.",
+      "Added paginated Load More support, loading states, empty states and error handling."
+    ]
+  },
+  {
     version: "3.2.2",
     date: "4 August 2026",
     changes: [

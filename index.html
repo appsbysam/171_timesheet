@@ -560,9 +560,25 @@
           </button>
         </div>
 
+        <div
+          id="managerOperationStatus"
+          class="manager-operation-status"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
         <div class="manager-menu-actions">
           <button id="managerMenuStaffBtn" type="button">
             👥 Manage Staff
+          </button>
+
+          <button
+            id="managerMenuAuditBtn"
+            class="manager-menu-audit"
+            type="button"
+          >
+            📋 Audit Log
           </button>
 
           <button
@@ -590,6 +606,14 @@
           </button>
 
           <button
+            id="managerMenuChangePinBtn"
+            class="manager-menu-change-pin"
+            type="button"
+          >
+            Change Manager PIN
+          </button>
+
+          <button
             id="managerMenuSignOutBtn"
             class="manager-menu-sign-out"
             type="button"
@@ -597,6 +621,91 @@
             Sign Out
           </button>
         </div>
+      </section>
+    </div>
+
+    <div
+      id="auditLogModal"
+      class="audit-log-modal no-print"
+      hidden
+    >
+      <div
+        class="audit-log-backdrop"
+        data-close-audit-log
+      ></div>
+
+      <section
+        class="audit-log-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auditLogTitle"
+      >
+        <div class="audit-log-header">
+          <div>
+            <h2 id="auditLogTitle">Audit Log</h2>
+            <p>Review changes recorded by staff and managers.</p>
+          </div>
+
+          <button
+            id="closeAuditLogBtn"
+            class="audit-log-close"
+            type="button"
+            aria-label="Close audit log"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="audit-log-filters">
+          <label>
+            Action
+            <select id="auditActionFilter">
+              <option value="">All actions</option>
+              <option value="Updated timesheet">Updated Timesheet</option>
+              <option value="Cleared week">Cleared Week</option>
+              <option value="Copied previous week">Copied Previous Week</option>
+            </select>
+          </label>
+
+          <label>
+            Changed by
+            <select id="auditUserFilter">
+              <option value="">All users</option>
+            </select>
+          </label>
+
+          <label>
+            Period
+            <select id="auditPeriodFilter">
+              <option value="week">This week</option>
+              <option value="30days">Last 30 days</option>
+              <option value="all">All time</option>
+            </select>
+          </label>
+        </div>
+
+        <div
+          id="auditLogStatus"
+          class="audit-log-status"
+          role="status"
+          aria-live="polite"
+        >
+          Ready
+        </div>
+
+        <div
+          id="auditLogList"
+          class="audit-log-list"
+        ></div>
+
+        <button
+          id="auditLoadMoreBtn"
+          class="audit-load-more-btn"
+          type="button"
+          hidden
+        >
+          Load More
+        </button>
       </section>
     </div>
 
@@ -618,8 +727,8 @@
       >
         <div class="manager-login-header">
           <div>
-            <h2 id="managerLoginTitle">Manager Sign In</h2>
-            <p>Sign in to manage staff members.</p>
+            <h2 id="managerLoginTitle">Manager PIN</h2>
+            <p>Enter your four-digit PIN to continue.</p>
           </div>
 
           <button
@@ -632,29 +741,144 @@
           </button>
         </div>
 
-        <form id="managerLoginForm" class="manager-login-form">
-          <label for="managerLoginEmail">Email</label>
-          <input
-            id="managerLoginEmail"
-            type="email"
-            autocomplete="username"
-            required
-          />
+        <form id="managerLoginForm" class="manager-login-form manager-pin-form">
+          <p
+            id="managerPinStatusBar"
+            class="manager-pin-user is-ready"
+            role="status"
+            aria-live="polite"
+          >
+            Signing in as
+            <strong id="managerPinUserName">Manager</strong>
+          </p>
 
-          <label for="managerLoginPassword">Password</label>
+          <label for="managerLoginPin">4-digit PIN</label>
+
           <input
-            id="managerLoginPassword"
+            id="managerLoginPin"
+            class="manager-pin-input"
             type="password"
-            autocomplete="current-password"
+            inputmode="none"
+            pattern="[0-9]{4}"
+            maxlength="4"
+            autocomplete="off"
+            aria-label="Four digit manager PIN"
+            readonly
+            tabindex="-1"
             required
           />
 
-          <button id="managerLoginSubmitBtn" type="submit">Sign In</button>
+          <div class="manager-pin-dots" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <div
+            id="managerPinKeypad"
+            class="manager-pin-keypad"
+            aria-label="PIN keypad"
+          >
+            <button type="button" data-pin-digit="1">1</button>
+            <button type="button" data-pin-digit="2">2</button>
+            <button type="button" data-pin-digit="3">3</button>
+            <button type="button" data-pin-digit="4">4</button>
+            <button type="button" data-pin-digit="5">5</button>
+            <button type="button" data-pin-digit="6">6</button>
+            <button type="button" data-pin-digit="7">7</button>
+            <button type="button" data-pin-digit="8">8</button>
+            <button type="button" data-pin-digit="9">9</button>
+            <button type="button" data-pin-clear>Clear</button>
+            <button type="button" data-pin-digit="0">0</button>
+            <button type="button" data-pin-backspace aria-label="Delete last digit">⌫</button>
+          </div>
+
+          <button id="managerLoginSubmitBtn" type="submit">
+            Unlock Manager Mode
+          </button>
         </form>
+
+        <p class="manager-pin-help">
+          Forgotten PINs must be reset by another manager or through Supabase support.
+        </p>
 
         <p
           id="managerLoginMessage"
-          class="manager-login-message"
+          class="manager-login-message manager-login-message-hidden"
+          aria-live="polite"
+        ></p>
+      </section>
+    </div>
+
+    <div
+      id="changePinModal"
+      class="change-pin-modal no-print"
+      hidden
+    >
+      <div
+        class="change-pin-backdrop"
+        data-close-change-pin
+      ></div>
+
+      <section
+        class="change-pin-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="changePinTitle"
+      >
+        <div class="change-pin-header">
+          <div>
+            <h2 id="changePinTitle">Change Manager PIN</h2>
+            <p>Choose a new four-digit PIN.</p>
+          </div>
+
+          <button
+            id="closeChangePinBtn"
+            class="change-pin-close"
+            type="button"
+            aria-label="Close change PIN"
+          >
+            ×
+          </button>
+        </div>
+
+        <form id="changePinForm" class="change-pin-form">
+          <label for="currentManagerPin">Current PIN</label>
+          <input
+            id="currentManagerPin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]{4}"
+            maxlength="4"
+            required
+          />
+
+          <label for="newManagerPin">New PIN</label>
+          <input
+            id="newManagerPin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]{4}"
+            maxlength="4"
+            required
+          />
+
+          <label for="confirmManagerPin">Confirm new PIN</label>
+          <input
+            id="confirmManagerPin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]{4}"
+            maxlength="4"
+            required
+          />
+
+          <button id="changePinSubmitBtn" type="submit">
+            Save New PIN
+          </button>
+        </form>
+
+        <p
+          id="changePinMessage"
+          class="change-pin-message"
           aria-live="polite"
         ></p>
       </section>
@@ -720,20 +944,86 @@
         ></div>
 
         <form id="addStaffForm" class="add-staff-form">
-          <label for="newStaffName">New staff member</label>
+          <label for="newStaffName">New user</label>
 
-          <div class="add-staff-row">
+          <input
+            id="newStaffName"
+            type="text"
+            maxlength="80"
+            autocomplete="off"
+            placeholder="Enter first name"
+            required
+          />
+
+          <fieldset class="new-user-role">
+            <legend>User role</legend>
+
+            <label>
+              <input
+                type="radio"
+                name="newStaffRole"
+                value="staff"
+                checked
+              />
+              Staff
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                name="newStaffRole"
+                value="manager"
+              />
+              Manager
+            </label>
+          </fieldset>
+
+          <fieldset class="new-user-status">
+            <legend>User status</legend>
+
+            <label>
+              <input
+                type="radio"
+                name="newStaffActive"
+                value="true"
+                checked
+              />
+              Active
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                name="newStaffActive"
+                value="false"
+              />
+              Inactive
+            </label>
+          </fieldset>
+
+          <div id="newManagerPinFields" class="new-manager-pin-fields" hidden>
+            <label for="newStaffPin">Manager PIN</label>
             <input
-              id="newStaffName"
-              type="text"
-              maxlength="80"
-              autocomplete="off"
-              placeholder="Enter staff name"
-              required
+              id="newStaffPin"
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]{4}"
+              maxlength="4"
+              placeholder="4 digits"
             />
 
-            <button type="submit">Add Staff</button>
+            <label for="newStaffPinConfirm">Confirm PIN</label>
+            <input
+              id="newStaffPinConfirm"
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]{4}"
+              maxlength="4"
+              placeholder="Repeat PIN"
+            />
           </div>
+
+          <button type="submit">Add User</button>
         </form>
 
         <p

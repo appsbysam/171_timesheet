@@ -1,5 +1,141 @@
 # 171 Café Staff Timesheet
 
+## Version 3.4.6
+Released: 4 August 2026
+
+### Improved
+- Manager PIN login now submits automatically after the fourth digit.
+- The keypad is temporarily disabled while the PIN is being checked.
+- Extra keypad taps are ignored during validation.
+- Incorrect PIN attempts clear the PIN and allow a fresh attempt.
+- The **Unlock Manager Mode** button remains available as a fallback.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
+## Version 3.4.5
+Released: 4 August 2026
+
+### Improved
+- Moved Manager PIN feedback into the existing **Signing in as** status bar.
+- Incorrect PIN messages now appear prominently in red.
+- **Checking PIN...** appears in blue while validation is running.
+- Manager lockout messages appear in orange.
+- Successful login briefly displays **Welcome [name]** in green.
+- Removed the visible lower PIN error message area.
+- Added subtle transitions between status states.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
+## Version 3.4.4
+Released: 4 August 2026
+
+### Added
+- Added **Active** and **Inactive** options when creating a user.
+- New users default to **Active**.
+- Added visible feedback while user creation is running.
+- Added success and error feedback after user creation.
+- Added a visible **Signing out...** status.
+- Sign-out buttons are disabled while sign-out is processing.
+
+### Database
+- Run `database-update-v3.4.4.sql` in DEV before testing.
+- Run the same migration in Production when deploying Version 3.4.4.
+
+---
+
+## Version 3.4.3
+Released: 4 August 2026
+
+### Improved
+- Changed Manager PIN keypad buttons to a medium green background with white text.
+- Changed completed PIN indicators to green to match the app theme.
+- Prevented the phone's native numeric keyboard from opening when using the custom PIN keypad.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
+## Version 3.4.2
+Released: 4 August 2026
+
+### Fixed
+- Fixed the desktop Manager PIN keypad entering two digits from one button press.
+- Removed a duplicated PIN keypad event listener from `app.js`.
+- Mobile PIN entry remains unchanged.
+
+### Database
+- No database changes are required.
+
+---
+
+## Version 3.4.1
+Released: 4 August 2026
+
+### Fixed
+- Removed the dependency on PostgreSQL `digest()` for Manager session tokens.
+- Reworked Manager sessions to use secure random tokens stored in the protected `manager_pin_sessions` table.
+- Qualified `pgcrypto` functions through Supabase’s `extensions` schema.
+- Retained eight-hour session expiry, sign-out, failed-attempt tracking and 15-minute lockouts.
+- Retained PIN login, PIN changes and individual Manager PINs.
+
+### Database
+- Use `database-update-v3.4.1.sql` instead of the Version 3.4.0 migration.
+- The script safely handles an incomplete Version 3.4.0 migration attempt.
+- Existing managers without a PIN receive temporary PIN **0000**.
+
+---
+
+## Version 3.4.0
+Released: 4 August 2026
+
+### Added
+- Added individual four-digit Manager PINs.
+- Added a phone-friendly Manager PIN keypad.
+- Added Staff/Manager role selection when creating a user.
+- Requires PIN and confirmation when creating a manager.
+- Added **Change Manager PIN** inside Manager Mode.
+- Added failed-attempt tracking and a 15-minute lockout after five incorrect attempts.
+- Added secure, expiring manager session tokens.
+
+### Changed
+- Replaced manager email/password entry in the app with PIN-only access.
+- Staff management changes now use protected Supabase database functions.
+- The Audit Log Viewer now reads through a protected manager function.
+- Existing managers receive temporary PIN **0000** during migration and should change it immediately.
+
+### Database
+- Run `database-update-v3.4.0.sql` in DEV before testing.
+- Run the same migration in Production only when deploying Version 3.4.0.
+
+---
+
+## Version 3.3.0
+Released: 4 August 2026
+
+### Added
+- Added a manager-only **Audit Log** option to Manager Mode.
+- Displays audit events newest first using mobile-friendly cards.
+- Shows action, changed-by name, Staff/Manager role, timestamp, week and readable change details.
+- Keeps device ID, device type, environment and record ID hidden under **Show Device Details**.
+- Added filters for action, user and period.
+- Added **This week**, **Last 30 days** and **All time** period options.
+- Added paginated **Load More** support.
+- Added loading, empty and error states.
+
+### Security
+- The Audit Log Viewer requires an authenticated Manager Mode session.
+- Existing Supabase RLS policies remain in effect.
+- No database changes are required for this release.
+
+---
+
 ## Version 3.2.2
 Released: 4 August 2026
 
@@ -232,7 +368,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.2.2**
+-   Current production version: **3.4.6**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

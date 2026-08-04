@@ -1,7 +1,7 @@
 {
-  "name": "DEV — Staff Timesheet",
+  "name": "DEV \u2014 Staff Timesheet",
   "short_name": "DEV Timesheet",
-  "description": "Development and testing version of the One7One Café staff timesheet.",
+  "description": "Development and testing version of the One7One Caf\u00e9 staff timesheet.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -21,5 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "version": "3.0.6-dev"
+  "version": "3.4.6-dev"
 }

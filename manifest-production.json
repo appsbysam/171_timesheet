@@ -1,7 +1,7 @@
 {
   "name": "Staff Timesheet",
   "short_name": "Timesheet",
-  "description": "Staff timesheet for One7One Café.",
+  "description": "Staff timesheet for One7One Caf\u00e9.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -21,5 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "version": "3.0.6"
+  "version": "3.4.6"
 }

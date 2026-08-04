@@ -3405,3 +3405,771 @@ body.inactive-user-restricted .toolbar .manage-staff-btn {
     display: none !important;
   }
 }
+
+
+/* =====================================================
+   AUDIT LOG VIEWER — v3.3.0
+   ===================================================== */
+
+.manager-menu-actions .manager-menu-audit {
+  border-color: #315a72;
+  background: #edf5f9;
+  color: #244f68;
+}
+
+.audit-log-modal[hidden] {
+  display: none !important;
+}
+
+.audit-log-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1750;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.audit-log-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.audit-log-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 680px);
+  max-height: min(92vh, 900px);
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow:
+    0 24px 75px rgba(0, 0, 0, 0.34);
+}
+
+.audit-log-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.audit-log-header h2 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.audit-log-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.audit-log-close {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #eee;
+  color: #222;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.audit-log-filters {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.audit-log-filters label {
+  text-transform: none;
+}
+
+.audit-log-filters select {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 5px;
+  padding: 7px 8px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.audit-log-status {
+  min-height: 34px;
+  margin-top: 11px;
+  padding: 8px 10px;
+  border: 1px solid #c9d3d9;
+  border-radius: 9px;
+  background: #f3f7f9;
+  color: #315a72;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.audit-log-status.is-loading {
+  opacity: 0.78;
+}
+
+.audit-log-status.is-error {
+  border-color: #e0a5a5;
+  background: #fff0f0;
+  color: #9b1c1c;
+}
+
+.audit-log-list {
+  display: grid;
+  gap: 11px;
+  margin-top: 11px;
+}
+
+.audit-entry-card {
+  padding: 14px;
+  border: 1px solid #d2d2d2;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow:
+    0 5px 17px rgba(0, 0, 0, 0.07);
+}
+
+.audit-entry-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.audit-entry-top h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.audit-entry-top time {
+  flex: 0 0 auto;
+  color: #777;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.audit-entry-person {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+  color: #444;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.audit-role-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.audit-role-badge.is-manager {
+  background: #e7eefc;
+  color: #274f9a;
+}
+
+.audit-role-badge.is-staff {
+  background: #e6f7eb;
+  color: #17652a;
+}
+
+.audit-entry-week {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 11px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f4f4f4;
+  font-size: 11px;
+}
+
+.audit-entry-week span {
+  color: #666;
+  font-weight: 800;
+}
+
+.audit-entry-week strong {
+  text-align: right;
+}
+
+.audit-entry-changes {
+  display: grid;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.audit-change-line {
+  padding: 8px 9px;
+  border-left: 3px solid #315a72;
+  border-radius: 5px;
+  background: #f7f9fa;
+  color: #222;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.audit-device-details {
+  margin-top: 11px;
+  border-top: 1px solid #e1e1e1;
+  padding-top: 9px;
+}
+
+.audit-device-details summary {
+  color: #315a72;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+
+.audit-device-details dl {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+}
+
+.audit-device-details dl > div {
+  display: grid;
+  grid-template-columns: 95px minmax(0, 1fr);
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: #f5f5f5;
+}
+
+.audit-device-details dt {
+  color: #666;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.audit-device-details dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.audit-load-more-btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  border-color: #315a72;
+  background: #edf5f9;
+  color: #244f68;
+  cursor: pointer;
+}
+
+.audit-log-empty,
+.audit-log-error {
+  padding: 20px 14px;
+  border: 1px dashed #bbb;
+  border-radius: 11px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.audit-log-error {
+  border-color: #d9a4a4;
+  background: #fff4f4;
+  color: #921d1d;
+}
+
+body.audit-log-modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .audit-log-modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .audit-log-dialog {
+    width: 100%;
+    max-height: 94vh;
+    padding: 16px 13px 18px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .audit-log-filters {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .audit-entry-top {
+    display: grid;
+  }
+
+  .audit-entry-top time {
+    text-align: left;
+  }
+}
+
+@media print {
+  .audit-log-modal {
+    display: none !important;
+  }
+}
+
+
+/* =====================================================
+   MANAGER PIN & USER ROLES — v3.4.0
+   ===================================================== */
+
+.manager-menu-change-pin {
+  border-color: #805b1f !important;
+  background: #fff8e8 !important;
+  color: #6d4810 !important;
+}
+
+.manager-pin-form {
+  text-align: center;
+}
+
+.manager-pin-user {
+  margin: 0 0 12px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: #f3f5f7;
+  color: #444;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manager-pin-user strong {
+  color: #111;
+}
+
+.manager-pin-input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.manager-pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 12px 0 18px;
+}
+
+.manager-pin-dots span {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #777;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.manager-pin-dots span.is-filled {
+  border-color: #111;
+  background: #111;
+}
+
+.manager-pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.manager-pin-keypad button {
+  min-height: 48px;
+  border-color: #aaa;
+  border-radius: 10px;
+  background: #f7f7f7;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.manager-pin-keypad button:active {
+  transform: translateY(1px);
+  background: #e9e9e9;
+}
+
+.manager-pin-help {
+  margin: 11px 0 0;
+  color: #777;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.new-user-role {
+  display: flex;
+  gap: 14px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 9px;
+}
+
+.new-user-role legend {
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.new-user-role label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.new-user-role input {
+  width: auto;
+  margin: 0;
+}
+
+.new-manager-pin-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.new-manager-pin-fields[hidden] {
+  display: none !important;
+}
+
+.add-staff-form > input,
+.new-manager-pin-fields input {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+}
+
+.add-staff-form > button {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 3px;
+}
+
+.staff-manage-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.staff-role-badge {
+  display: inline-flex;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.staff-role-badge.is-manager {
+  background: #e7eefc;
+  color: #274f9a;
+}
+
+.staff-role-badge.is-staff {
+  background: #e6f7eb;
+  color: #17652a;
+}
+
+.change-pin-modal[hidden] {
+  display: none !important;
+}
+
+.change-pin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1850;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.change-pin-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.change-pin-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+  padding: 20px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+.change-pin-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #ddd;
+}
+
+.change-pin-header h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.change-pin-header p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.change-pin-close {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #eee;
+  font-size: 25px;
+}
+
+.change-pin-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.change-pin-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  font-size: 18px;
+  letter-spacing: 5px;
+  text-align: center;
+}
+
+.change-pin-form button {
+  min-height: 45px;
+  margin-top: 5px;
+  border-color: #13863a;
+  background: #1fa64b;
+  color: #fff;
+}
+
+.change-pin-message {
+  min-height: 18px;
+  margin: 10px 0 0;
+  color: #17652a;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.change-pin-message.error {
+  color: #a61d24;
+}
+
+@media (max-width: 460px) {
+  .change-pin-modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .change-pin-dialog {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .new-manager-pin-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =====================================================
+   PIN KEYPAD READABILITY & MOBILE KEYBOARD — v3.4.3
+   ===================================================== */
+
+.manager-pin-keypad button {
+  border-color: #17833b;
+  background: #249c4b;
+  color: #fff;
+}
+
+.manager-pin-keypad button:hover {
+  border-color: #126d31;
+  background: #208d44;
+  color: #fff;
+}
+
+.manager-pin-keypad button:active {
+  background: #197b39;
+  color: #fff;
+}
+
+.manager-pin-dots span.is-filled {
+  border-color: #249c4b;
+  background: #249c4b;
+}
+
+
+/* =====================================================
+   NEW USER STATUS & MANAGER FEEDBACK — v3.4.4
+   ===================================================== */
+
+.new-user-status {
+  display: flex;
+  gap: 14px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 9px;
+}
+
+.new-user-status legend {
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.new-user-status label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.new-user-status input {
+  width: auto;
+  margin: 0;
+}
+
+.manager-operation-status[hidden] {
+  display: none !important;
+}
+
+.manager-operation-status {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  border: 1px solid #b9c8cf;
+  border-radius: 9px;
+  background: #f3f7f9;
+  color: #315a72;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.manager-operation-status.is-success {
+  border-color: #a8d4b4;
+  background: #edf9f0;
+  color: #17652a;
+}
+
+.manager-operation-status.is-error {
+  border-color: #e0a5a5;
+  background: #fff0f0;
+  color: #9b1c1c;
+}
+
+
+/* =====================================================
+   MANAGER PIN LIVE STATUS BAR — v3.4.5
+   ===================================================== */
+
+.manager-pin-user {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.manager-pin-user.is-ready {
+  background: #f3f5f7;
+  color: #444;
+}
+
+.manager-pin-user.is-checking {
+  background: #eaf2fb;
+  color: #285d91;
+}
+
+.manager-pin-user.is-error {
+  background: #fff0f0;
+  color: #a61d24;
+}
+
+.manager-pin-user.is-locked {
+  background: #fff4df;
+  color: #8a5700;
+}
+
+.manager-pin-user.is-success {
+  background: #edf9f0;
+  color: #17652a;
+}
+
+.manager-login-message-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+
+/* =====================================================
+   MANAGER PIN AUTO-SUBMIT — v3.4.6
+   ===================================================== */
+
+.manager-pin-keypad.is-disabled {
+  pointer-events: none;
+  opacity: 0.68;
+}
