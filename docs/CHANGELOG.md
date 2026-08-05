@@ -1,5 +1,21 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.6
+Released: 5 August 2026
+
+### Fixed
+- Prevented Google Password Manager from opening automatically when Manage Staff is opened.
+- Removed automatic focus from the **Enter first name** field.
+- Marked the first-name field as a normal `given-name` field rather than a username.
+- Marked both PIN fields as `new-password` fields.
+- Added form-level autocomplete safeguards.
+- The normal mobile keyboard still opens when the user taps the first-name field.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
 ## Version 3.5.5
 Released: 5 August 2026
 
@@ -478,7 +494,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.5.5**
+-   Current production version: **3.5.6**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

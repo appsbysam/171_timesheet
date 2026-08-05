@@ -970,14 +970,14 @@
           aria-atomic="true"
         ></div>
 
-        <form id="addStaffForm" class="add-staff-form">
+        <form id="addStaffForm" class="add-staff-form" autocomplete="off">
           <label for="newStaffName">New user</label>
 
           <input
             id="newStaffName"
             type="text"
             maxlength="80"
-            autocomplete="off"
+            autocomplete="given-name"
             placeholder="Enter first name"
             required
           />
@@ -1032,6 +1032,7 @@
             <label for="newStaffPin">User PIN</label>
             <input
               id="newStaffPin"
+              name="new_staff_pin"
               type="password"
               inputmode="numeric"
               pattern="[0-9]{4}"
@@ -1042,6 +1043,7 @@
             <label for="newStaffPinConfirm">Confirm PIN</label>
             <input
               id="newStaffPinConfirm"
+              name="confirm_staff_pin"
               type="password"
               inputmode="numeric"
               pattern="[0-9]{4}"
@@ -1157,7 +1159,7 @@
           id="userIdentityName"
           type="text"
           maxlength="80"
-          autocomplete="given-name"
+          autocomplete="new-password"
           autocapitalize="words"
           spellcheck="false"
           required

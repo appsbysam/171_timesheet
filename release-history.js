@@ -1,5 +1,17 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.6",
+    date: "5 August 2026",
+    changes: [
+      "Stopped Google Password Manager from opening automatically in Manage Staff.",
+      "Removed automatic focus from the new-user first-name field.",
+      "Marked the first-name field as a normal given-name field.",
+      "Marked new PIN fields as new credentials rather than saved passwords.",
+      "Added form-level autocomplete safeguards.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.5.5",
     date: "5 August 2026",
     changes: [

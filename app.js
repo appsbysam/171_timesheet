@@ -3329,7 +3329,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.5"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.6"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -5501,7 +5501,6 @@ async function showStaffModal() {
 
   try {
     await renderStaffManager();
-    newStaffName.focus();
   } catch (error) {
     console.error(error);
     setStaffManagerMessage(error.message, true);
@@ -5536,6 +5535,14 @@ function closeManagerMenu() {
 }
 
 async function openStaffModal() {
+  if (
+    document.activeElement &&
+    typeof document.activeElement.blur ===
+      "function"
+  ) {
+    document.activeElement.blur();
+  }
+
   try {
     const allowed = await requireManagerSession();
 
@@ -6255,8 +6262,6 @@ addStaffForm.addEventListener(
       );
 
       addStaffForm.reset();
-
-      newStaffName.focus();
     } else {
       showManagerOperationStatus(
         `Unable to add ${name}`,
