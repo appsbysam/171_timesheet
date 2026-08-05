@@ -1,5 +1,17 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.7",
+    date: "5 August 2026",
+    changes: [
+      "Added Change PIN to My Profile for every user.",
+      "Added side-by-side Close and Sign Out buttons to My Profile.",
+      "Moved user sign-out into My Profile as the central account location.",
+      "Removed duplicate Sign Out buttons from Manager Menu and Manage Staff.",
+      "Signing out now returns the user to the PIN login screen.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.5.6",
     date: "5 August 2026",
     changes: [

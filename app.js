@@ -315,6 +315,12 @@ const closeMyProfileBtn =
   document.getElementById("closeMyProfileBtn");
 const myProfileCloseAction =
   document.getElementById("myProfileCloseAction");
+
+const myProfileChangePinBtn =
+  document.getElementById("myProfileChangePinBtn");
+
+const myProfileSignOutBtn =
+  document.getElementById("myProfileSignOutBtn");
 const profileUserName =
   document.getElementById("profileUserName");
 const profileUserRole =
@@ -1146,6 +1152,20 @@ closeMyProfileBtn.addEventListener(
 myProfileCloseAction.addEventListener(
   "click",
   closeMyProfile
+);
+
+myProfileChangePinBtn.addEventListener(
+  "click",
+  () => {
+    closeMyProfile();
+    pinLoginPurpose = "app";
+    openChangePinModal();
+  }
+);
+
+myProfileSignOutBtn.addEventListener(
+  "click",
+  signOutManager
 );
 
 myProfileModal
@@ -3329,7 +3349,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.6"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.7"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -5763,6 +5783,8 @@ changePinForm.addEventListener(
           pinLoginPurpose === "manager"
         ) {
           openManagerMenu();
+        } else {
+          openMyProfile();
         }
       }, 650);
     } catch (error) {
@@ -6050,6 +6072,10 @@ managerLoginForm.addEventListener(
 );
 
 async function signOutManager() {
+  setMyProfileMessage(
+    "Signing out..."
+  );
+
   showManagerOperationStatus(
     "Signing out...",
     "working"
@@ -6098,7 +6124,12 @@ async function signOutManager() {
 
   closeStaffModal();
   closeManagerMenu();
+
+  changePinModal.dataset.mandatory =
+    "false";
+
   closeChangePinModal();
+  closeMyProfile();
 
   if (managerSignOutBtn) {
     managerSignOutBtn.disabled = false;
@@ -6107,17 +6138,11 @@ async function signOutManager() {
   if (managerMenuSignOutBtn) {
     managerMenuSignOutBtn.disabled = false;
   }
+
+  pinLoginPurpose = "app";
+  openManagerLogin();
 }
 
-managerSignOutBtn.addEventListener(
-  "click",
-  signOutManager
-);
-
-managerMenuSignOutBtn.addEventListener(
-  "click",
-  signOutManager
-);
 
 staffModal
   .querySelectorAll("[data-close-staff-modal]")

@@ -1,5 +1,22 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.7
+Released: 5 August 2026
+
+### Added
+- Added **Change PIN** to My Profile for every user.
+- Added side-by-side **Close** and **Sign Out** actions.
+- Signing out now revokes the current PIN session and returns to the User PIN screen.
+
+### Improved
+- Removed duplicate **Sign Out** buttons from Manager Menu and Manage Staff.
+- My Profile is now the central location for user account actions.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
 ## Version 3.5.6
 Released: 5 August 2026
 
@@ -494,7 +511,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.5.6**
+-   Current production version: **3.5.7**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.
