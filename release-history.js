@@ -1,5 +1,16 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.4",
+    date: "5 August 2026",
+    changes: [
+      "Manager Mode is now completely hidden for Staff users.",
+      "The Manager Mode button appears only when the identified user's role is Manager.",
+      "Added a CSS safeguard to prevent stale interface states from revealing the button.",
+      "Manager authentication and permissions remain unchanged.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.5.3",
     date: "4 August 2026",
     changes: [

@@ -4456,3 +4456,13 @@ body.my-profile-modal-open {
     grid-column: auto;
   }
 }
+
+
+/* =====================================================
+   MANAGER MODE ROLE VISIBILITY — v3.5.4
+   ===================================================== */
+
+#manageStaffBtn.is-role-hidden,
+#manageStaffBtn[hidden] {
+  display: none !important;
+}

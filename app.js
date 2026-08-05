@@ -3183,6 +3183,38 @@ function applyManagerControlState() {
     return;
   }
 
+  const isManager =
+    resolvedAppUser?.role === "manager";
+
+  manageStaffBtn.hidden =
+    !isManager;
+
+  manageStaffBtn.classList.toggle(
+    "is-role-hidden",
+    !isManager
+  );
+
+  if (!isManager) {
+    manageStaffBtn.disabled = true;
+    manageStaffBtn.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    resetBtn.hidden = true;
+    managerCard.hidden = true;
+    closeManagerMenu();
+
+    updateClearButtonState();
+    applyInactiveRestrictedMode();
+    return;
+  }
+
+  manageStaffBtn.disabled = false;
+  manageStaffBtn.removeAttribute(
+    "aria-hidden"
+  );
+
   if (managerSignedIn) {
     manageStaffBtn.hidden = false;
     manageStaffBtn.textContent = "👤 Manager Mode";
@@ -3297,7 +3329,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.3"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.4"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
