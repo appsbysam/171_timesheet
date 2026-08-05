@@ -3329,7 +3329,7 @@ function addModeBadge() {
   const version = document.createElement("button");
   version.className = "app-version app-version-button";
   version.type = "button";
-  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.4"}`;
+  version.textContent = `Version ${window.APP_DISPLAY_VERSION || "3.5.5"}`;
   version.title = "View version history";
   version.setAttribute("aria-label", "View version history");
 
@@ -5311,12 +5311,29 @@ function setChangePinMessage(
   );
 }
 
-function openChangePinModal() {
+function openChangePinModal(
+  mandatory = false
+) {
   setChangePinMessage("");
 
   currentManagerPin.value = "";
   newManagerPin.value = "";
   confirmManagerPin.value = "";
+
+  changePinModal.dataset.mandatory =
+    mandatory ? "true" : "false";
+
+  closeChangePinBtn.hidden =
+    mandatory;
+
+  changePinModal
+    .querySelectorAll(
+      "[data-close-change-pin]"
+    )
+    .forEach((element) => {
+      element.style.pointerEvents =
+        mandatory ? "none" : "";
+    });
 
   changePinModal.hidden = false;
 
@@ -5331,6 +5348,13 @@ function openChangePinModal() {
 }
 
 function closeChangePinModal() {
+  if (
+    changePinModal.dataset.mandatory ===
+    "true"
+  ) {
+    return;
+  }
+
   changePinModal.hidden = true;
 
   if (
@@ -5706,6 +5730,19 @@ changePinForm.addEventListener(
 
       pinMustChangeAfterLogin = false;
 
+      changePinModal.dataset.mandatory =
+        "false";
+
+      closeChangePinBtn.hidden = false;
+
+      changePinModal
+        .querySelectorAll(
+          "[data-close-change-pin]"
+        )
+        .forEach((element) => {
+          element.style.pointerEvents = "";
+        });
+
       window.setTimeout(() => {
         closeChangePinModal();
 
@@ -5957,7 +5994,7 @@ managerLoginForm.addEventListener(
       applyInactiveRestrictedMode();
 
       if (pinMustChangeAfterLogin) {
-        openChangePinModal();
+        openChangePinModal(true);
         return;
       }
 

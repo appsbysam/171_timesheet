@@ -1,5 +1,16 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.5",
+    date: "5 August 2026",
+    changes: [
+      "New users are now marked as requiring a PIN change on first login.",
+      "Users with a reset PIN must choose a new PIN before continuing.",
+      "The mandatory PIN-change modal cannot be closed or dismissed.",
+      "The close button and outside-tap dismissal are disabled until the PIN is changed.",
+      "Included the required Supabase manager_add_staff function update."
+    ]
+  },
+  {
     version: "3.5.4",
     date: "5 August 2026",
     changes: [

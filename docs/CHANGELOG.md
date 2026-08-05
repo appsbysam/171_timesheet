@@ -1,5 +1,20 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.5
+Released: 5 August 2026
+
+### Fixed
+- New users are now created with `pin_must_change = true`.
+- Users signing in with an initial or reset PIN must choose a new PIN before continuing.
+- The mandatory PIN-change modal cannot be closed with the close button, outside tap or Escape.
+- Normal voluntary PIN changes remain dismissible.
+
+### Database
+- Run `database-update-v3.5.5.sql` in DEV before testing.
+- Run the same migration in Production when deploying Version 3.5.5.
+
+---
+
 ## Version 3.5.4
 Released: 5 August 2026
 
@@ -463,7 +478,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.5.4**
+-   Current production version: **3.5.5**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

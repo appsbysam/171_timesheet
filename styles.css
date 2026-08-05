@@ -4466,3 +4466,25 @@ body.my-profile-modal-open {
 #manageStaffBtn[hidden] {
   display: none !important;
 }
+
+
+/* =====================================================
+   MANDATORY FIRST-LOGIN PIN CHANGE — v3.5.5
+   ===================================================== */
+
+.change-pin-modal[data-mandatory="true"]
+.change-pin-backdrop {
+  pointer-events: none;
+}
+
+.change-pin-modal[data-mandatory="true"]
+.change-pin-dialog {
+  border: 2px solid #249c4b;
+}
+
+.change-pin-modal[data-mandatory="true"]
+.change-pin-header p::before {
+  content: "Required: ";
+  font-weight: 900;
+  color: #17652a;
+}
