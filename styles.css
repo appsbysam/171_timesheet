@@ -4543,3 +4543,42 @@ body.my-profile-modal-open {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* =====================================================
+   DAILY HEADER DATES & ACCESS AUDIT — v3.5.8
+   ===================================================== */
+
+.day-block h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-heading-name {
+  min-width: 0;
+}
+
+.day-heading-date {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.35px;
+  text-align: right;
+  opacity: 0.92;
+}
+
+
+/* =====================================================
+   UPDATE VERSION DISPLAY — v3.5.9
+   ===================================================== */
+
+.app-update-version {
+  display: inline-block;
+  margin: 5px 0 2px;
+  color: #159443;
+  font-size: 16px;
+  font-weight: 900;
+}

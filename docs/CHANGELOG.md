@@ -1,5 +1,39 @@
 # 171 Café Staff Timesheet
 
+## Version 3.5.9
+Released: 11 August 2026
+
+### Improved
+- The **Update Available** popup now shows the exact deployed version.
+- The version number is read dynamically from `version.js`.
+- The displayed version is highlighted in green and bold.
+- Future releases automatically display their own version number without changing the popup text.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
+## Version 3.5.8
+Released: 10 August 2026
+
+### Added
+- Added the actual calendar date to the right side of every daily header.
+- Dates automatically update when the displayed week changes.
+- Added **Accessed Timesheet** audit records whenever a user successfully opens the app.
+- Access is logged even when the user makes no changes.
+- Added **Accessed Timesheet** to the Audit Log action filter.
+
+### Audit behaviour
+- One access event is recorded when the application successfully opens for the user.
+- Changing between weeks does not create additional access events.
+- Existing device ID, device type, user ID/name, role, environment and timestamp information continue to be captured.
+
+### Database
+- No Supabase database changes are required.
+
+---
+
 ## Version 3.5.7
 Released: 5 August 2026
 
@@ -511,7 +545,7 @@ Released: 4 August 2026
 
 ## Documentation Notes
 
--   Current production version: **3.5.7**
+-   Current production version: **3.5.9**
 -   DEV builds automatically display the `-dev` suffix.
 -   Version numbering is controlled through `version.js` and
     `config.js`.

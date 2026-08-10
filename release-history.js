@@ -1,5 +1,27 @@
 window.RELEASE_HISTORY = [
   {
+    version: "3.5.9",
+    date: "11 August 2026",
+    changes: [
+      "Update Available now displays the actual deployed version number.",
+      "The version is read dynamically from version.js and is not hard-coded.",
+      "The available version is highlighted in green for easier identification.",
+      "No database changes are required."
+    ]
+  },
+  {
+    version: "3.5.8",
+    date: "10 August 2026",
+    changes: [
+      "Added the calendar date to the right side of every daily timesheet header.",
+      "Day dates automatically follow the selected week.",
+      "Added an Accessed Timesheet audit event whenever a user successfully opens the app.",
+      "Access events are recorded even when no timesheet changes are made.",
+      "Added Accessed Timesheet to the Audit Log action filter.",
+      "No database changes are required."
+    ]
+  },
+  {
     version: "3.5.7",
     date: "5 August 2026",
     changes: [
