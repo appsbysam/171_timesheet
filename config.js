@@ -7,5 +7,5 @@
   function detectEnvironment(){const saved=localStorage.getItem("171-timesheet-environment");if(saved==="development"||saved==="production")return saved;const text=`${location.hostname}${location.pathname}`.toLowerCase();return text.includes("dev-171-timesheet")?"development":"production"}
   const selected=detectEnvironment();window.TIMESHEET_ENV=selected;window.APP_CONFIG=Object.freeze(environments[selected]);
   window.switchTimesheetEnvironment=function(environment){if(environment==="auto"){localStorage.removeItem("171-timesheet-environment");location.reload();return}if(!environments[environment])throw new Error('Use "development", "production", or "auto".');localStorage.setItem("171-timesheet-environment",environment);location.reload()};
-  window.addEventListener("DOMContentLoaded",()=>{for(const file of ["promotion-admin.js","notifications.js","notification-settings.js","timesheet-safeguards.js"]){const s=document.createElement("script");s.src=`${file}?v=${Date.now()}`;document.body.appendChild(s)}});
+  window.addEventListener("DOMContentLoaded",()=>{for(const file of ["promotion-admin.js","notifications.js","notification-settings.js","timesheet-safeguards.js","did-not-work.js"]){const s=document.createElement("script");s.src=`${file}?v=${Date.now()}`;document.body.appendChild(s)}});
 })();
