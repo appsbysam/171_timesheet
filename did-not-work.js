@@ -1,4 +1,4 @@
-/* v3.9.1 — add "Did not work" to every timesheet time dropdown. */
+/* v3.9.3 — add and synchronise "Did not work" in timesheet dropdowns. */
 (function () {
   const DID_NOT_WORK = "DID_NOT_WORK";
 
@@ -20,6 +20,14 @@
 
   function addToAll() {
     document.querySelectorAll(".shift-row select").forEach(addOption);
+  }
+
+  function getPair(select, row) {
+    if (select.classList.contains("start")) return row.querySelector(".finish");
+    if (select.classList.contains("finish")) return row.querySelector(".start");
+    if (select.classList.contains("split-start")) return row.querySelector(".split-finish");
+    if (select.classList.contains("split-finish")) return row.querySelector(".split-start");
+    return null;
   }
 
   addToAll();
@@ -64,24 +72,30 @@
   document.addEventListener("change", (event) => {
     const select = event.target;
     if (!(select instanceof HTMLSelectElement) || !select.matches(".shift-row select")) return;
-    if (select.value !== DID_NOT_WORK) return;
 
     const row = select.closest(".shift-row");
     if (!row) return;
 
-    const pair = select.classList.contains("start")
-      ? row.querySelector(".finish")
-      : select.classList.contains("finish")
-        ? row.querySelector(".start")
-        : select.classList.contains("split-start")
-          ? row.querySelector(".split-finish")
-          : select.classList.contains("split-finish")
-            ? row.querySelector(".split-start")
-            : null;
+    const pair = getPair(select, row);
+    if (!pair) return;
 
-    if (pair && pair.value !== DID_NOT_WORK) {
+    const selectedDidNotWork = select.value === DID_NOT_WORK;
+    const pairWasDidNotWork = pair.value === DID_NOT_WORK;
+
+    /* Start-time changes cause the main app to rebuild the Finish dropdown.
+       Synchronise after that rebuild so the full time list remains intact. */
+    setTimeout(() => {
+      addOption(select);
       addOption(pair);
-      pair.value = DID_NOT_WORK;
-    }
+
+      if (selectedDidNotWork) {
+        pair.value = DID_NOT_WORK;
+        return;
+      }
+
+      if (pairWasDidNotWork) {
+        pair.value = "";
+      }
+    }, 0);
   }, true);
 })();
