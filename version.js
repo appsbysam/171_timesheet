@@ -1,1 +1,1 @@
-window.APP_VERSION = "3.9.3";
+window.APP_VERSION = "3.9.8";
