@@ -1,55 +1,82 @@
-/* v3.9.3 — add and synchronise "Did not work" in timesheet dropdowns. */
+/* v3.9.8 — persist "Did not work" and refresh completed-row state immediately. */
 (function () {
   const DID_NOT_WORK = "DID_NOT_WORK";
+  let hooksInstalled = false;
+
+  function isTimesheetSelect(select) {
+    return select instanceof HTMLSelectElement &&
+      (select.classList.contains("start") ||
+       select.classList.contains("finish") ||
+       select.classList.contains("split-start") ||
+       select.classList.contains("split-finish"));
+  }
 
   function addOption(select) {
-    if (!select || !select.matches(".shift-row select")) return;
+    if (!isTimesheetSelect(select)) return;
     if ([...select.options].some((option) => option.value === DID_NOT_WORK)) return;
 
     const option = document.createElement("option");
     option.value = DID_NOT_WORK;
     option.textContent = "Did not work";
 
-    const selectOption = select.options[0];
-    if (selectOption && selectOption.nextSibling) {
-      select.insertBefore(option, selectOption.nextSibling);
+    const first = select.options[0];
+    if (first && first.nextSibling) {
+      select.insertBefore(option, first.nextSibling);
     } else {
       select.appendChild(option);
     }
   }
 
-  function addToAll() {
-    document.querySelectorAll(".shift-row select").forEach(addOption);
-  }
-
-  function getPair(select, row) {
-    if (select.classList.contains("start")) return row.querySelector(".finish");
-    if (select.classList.contains("finish")) return row.querySelector(".start");
-    if (select.classList.contains("split-start")) return row.querySelector(".split-finish");
-    if (select.classList.contains("split-finish")) return row.querySelector(".split-start");
-    return null;
-  }
-
-  addToAll();
-
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      if (mutation.type !== "childList") continue;
-      const target = mutation.target;
-      if (target instanceof HTMLSelectElement && target.matches(".shift-row select")) {
-        addOption(target);
-      }
-      mutation.addedNodes.forEach((node) => {
-        if (!(node instanceof Element)) return;
-        if (node.matches?.(".shift-row select")) addOption(node);
-        node.querySelectorAll?.(".shift-row select").forEach(addOption);
-      });
+  function refreshRowState(row) {
+    if (typeof window.calculateRow === "function") {
+      window.calculateRow(row);
     }
-  });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+    if (typeof window.calculateTotals === "function") {
+      window.calculateTotals();
+    }
+  }
 
-  if (typeof window.calculateShiftMinutes === "function") {
+  function installCoreHooks() {
+    if (hooksInstalled) return true;
+
+    if (
+      typeof window.populateSelect !== "function" ||
+      typeof window.updateFinishOptions !== "function" ||
+      typeof window.calculateShiftMinutes !== "function"
+    ) {
+      return false;
+    }
+
+    hooksInstalled = true;
+
+    const originalPopulateSelect = window.populateSelect;
+    window.populateSelect = function (select, options) {
+      originalPopulateSelect(select, options);
+      addOption(select);
+    };
+
+    const originalUpdateFinishOptions = window.updateFinishOptions;
+    window.updateFinishOptions = function (
+      startSelect,
+      finishSelect,
+      day,
+      preferredValue = finishSelect.value
+    ) {
+      originalUpdateFinishOptions(
+        startSelect,
+        finishSelect,
+        day,
+        preferredValue
+      );
+
+      addOption(finishSelect);
+
+      if (preferredValue === DID_NOT_WORK) {
+        finishSelect.value = DID_NOT_WORK;
+      }
+    };
+
     const originalCalculateShiftMinutes = window.calculateShiftMinutes;
     window.calculateShiftMinutes = function (startSelect, finishSelect) {
       const startDidNotWork = startSelect.value === DID_NOT_WORK;
@@ -67,11 +94,35 @@
 
       return originalCalculateShiftMinutes(startSelect, finishSelect);
     };
+
+    document.querySelectorAll(".shift-row select").forEach(addOption);
+    return true;
+  }
+
+  if (!installCoreHooks()) {
+    const hookTimer = window.setInterval(() => {
+      if (installCoreHooks()) {
+        window.clearInterval(hookTimer);
+      }
+    }, 5);
+
+    window.setTimeout(() => {
+      window.clearInterval(hookTimer);
+      installCoreHooks();
+    }, 5000);
+  }
+
+  function getPair(select, row) {
+    if (select.classList.contains("start")) return row.querySelector(".finish");
+    if (select.classList.contains("finish")) return row.querySelector(".start");
+    if (select.classList.contains("split-start")) return row.querySelector(".split-finish");
+    if (select.classList.contains("split-finish")) return row.querySelector(".split-start");
+    return null;
   }
 
   document.addEventListener("change", (event) => {
     const select = event.target;
-    if (!(select instanceof HTMLSelectElement) || !select.matches(".shift-row select")) return;
+    if (!isTimesheetSelect(select)) return;
 
     const row = select.closest(".shift-row");
     if (!row) return;
@@ -82,20 +133,36 @@
     const selectedDidNotWork = select.value === DID_NOT_WORK;
     const pairWasDidNotWork = pair.value === DID_NOT_WORK;
 
-    /* Start-time changes cause the main app to rebuild the Finish dropdown.
-       Synchronise after that rebuild so the full time list remains intact. */
-    setTimeout(() => {
+    window.setTimeout(() => {
       addOption(select);
       addOption(pair);
 
       if (selectedDidNotWork) {
         pair.value = DID_NOT_WORK;
-        return;
-      }
-
-      if (pairWasDidNotWork) {
+      } else if (pairWasDidNotWork) {
         pair.value = "";
       }
+
+      refreshRowState(row);
     }, 0);
   }, true);
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        if (isTimesheetSelect(node)) addOption(node);
+        node.querySelectorAll?.(".shift-row select").forEach(addOption);
+      });
+    }
+  });
+
+  if (document.body) {
+    observer.observe(document.body, { childList: true, subtree: true });
+  } else {
+    document.addEventListener("DOMContentLoaded", () => {
+      observer.observe(document.body, { childList: true, subtree: true });
+      document.querySelectorAll(".shift-row select").forEach(addOption);
+    }, { once: true });
+  }
 })();
