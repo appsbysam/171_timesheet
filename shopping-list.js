@@ -1,7 +1,9 @@
-/* Production shared shopping list — v3.10.5 */
+/* Production shared shopping list — v3.10.6 */
 (() => {
   const css = `
   #shoppingOpenBtn{background:#1f6d55;color:white;font-weight:700}
+  #shoppingOpenBtn.shop-has-items{background:#c62828!important;border-color:#a51e1e!important;color:white!important}
+  #shoppingPanel .shop-name{cursor:pointer}
   #shoppingOverlay[hidden]{display:none!important}
   #shoppingOverlay{position:fixed;inset:0;background:#0009;z-index:100000;display:flex;justify-content:center;align-items:center;padding:12px}
   #shoppingPanel{background:white;color:#222;border-radius:14px;width:min(620px,100%);height:min(92dvh,820px);overflow:hidden;display:flex;flex-direction:column;padding:14px;box-shadow:0 8px 30px #0005}
@@ -32,6 +34,14 @@
   const body=overlay.querySelector('#shopBody'), status=overlay.querySelector('#shopStatus'), selectedCount=overlay.querySelector('#shopSelectedCount');
   let current=null,page=0,preview=false,busy=false,settings=false;
   const perPage=8;
+  function setButtonColour(list){
+    const hasItems=!!(list?.id&&list.state?.categories?.some(cat=>cat.items?.some(item=>item.selected)));
+    button.classList.toggle('shop-has-items',hasItems);
+  }
+  async function refreshButtonColour(){
+    if(saving||pendingSave)return;
+    try{const list=await rpc('load');setButtonColour(list)}catch(error){console.warn('Shopping button status unavailable:',error)}
+  }
   const button=document.createElement('button');button.id='shoppingOpenBtn';button.type='button';button.textContent='🛒 Shopping List';
   const print=document.querySelector('#printBtn'); if(print) print.insertAdjacentElement('afterend',button);
   else document.querySelector('.toolbar')?.appendChild(button);
@@ -44,7 +54,7 @@
     const {data,error}=await db.rpc('shopping_action',{p_token:managerSessionToken,p_action:actionName,p_state:state,p_revision:revision});
     if(error)throw Error(error.message);return data;
   }
-  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
+  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');setButtonColour(current);if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');setButtonColour(current);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
   let pendingSave=false, saving=false, generation=0;
   async function save(){
     pendingSave=true;
@@ -60,6 +70,7 @@
         const result=await rpc('save',snapshot,revision);
         if(myGeneration!==generation||current?.id!==id)return;
         current.revision=result.revision;
+        setButtonColour(current);
       }
       if(myGeneration===generation)say('✓ Saved');
     }catch(e){
@@ -70,7 +81,7 @@
       await load().catch(err=>say(err.message,true));
     }finally{saving=false;if(pendingSave&&current)void save()}
   }
-  function change(fn){if(!current)return;fn();render();void save()}
+  function change(fn){if(!current)return;fn();setButtonColour(current);render();void save()}
   function allItems(){return current.state.categories.flatMap(c=>c.items.filter(i=>i.selected).map(i=>({category:c.name,...i})))}
   function listText(){const groups=current.state.categories.map(c=>({name:c.name,items:c.items.filter(i=>i.selected)})).filter(g=>g.items.length);
     return '171 CAFÉ — SHOPPING LIST\n\n'+groups.map(g=>g.name.toUpperCase()+'\n'+g.items.map(i=>'• '+i.name+(i.note?' — '+i.note:'')).join('\n')).join('\n\n')}
@@ -108,7 +119,8 @@
       cat.items.slice(pi*perPage,(pi+1)*perPage).forEach(item=>{
         const row=el('div',undefined,'shop-row');
         const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!item.selected;cb.onchange=()=>change(()=>item.selected=cb.checked);
-        const label=el('span',item.name,'shop-name');
+        cb.id='shop-item-'+ci+'-'+pi+'-'+cat.items.indexOf(item);
+        const label=el('label',item.name,'shop-name');label.htmlFor=cb.id;
         const note=document.createElement('input');note.type='text';note.className='shop-note';note.placeholder='Qty / notes';note.value=item.note||'';
         note.onchange=()=>change(()=>item.note=note.value.trim());
         row.append(cb,label,note);body.append(row);
@@ -124,9 +136,12 @@
     body.append(foot);
     if(!preview){const pages=cats.reduce((n,cat)=>n+Math.max(1,Math.ceil(cat.items.length/perPage)),0);const footer=el('div','Page '+(page+1)+' of '+pages);footer.style.cssText='text-align:center;color:#777;font-size:.9rem;font-weight:700;margin:12px 0 4px';body.append(footer)}
   }
-  async function command(name){if(busy||saving||pendingSave){alert('Please wait for your changes to save first.');return}busy=true;try{const result=await rpc(name,null,current.revision);if(name==='ordered'){say('Marked ordered. Start a new list when ready.');current=null;body.replaceChildren();body.append(action('Start next list',async()=>{try{current=await rpc('new',null,result.revision);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}}))}else{current=result;preview=false;page=0;say('New shared list started');render()}}catch(e){say(e.message,true)}finally{busy=false}}
+  async function command(name){if(busy||saving||pendingSave){alert('Please wait for your changes to save first.');return}busy=true;try{const result=await rpc(name,null,current.revision);if(name==='ordered'){setButtonColour(null);say('Marked ordered. Start a new list when ready.');current=null;body.replaceChildren();body.append(action('Start next list',async()=>{try{current=await rpc('new',null,result.revision);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}}))}else{current=result;setButtonColour(current);preview=false;page=0;say('New shared list started');render()}}catch(e){say(e.message,true)}finally{busy=false}}
   async function history(){try{const items=await rpc('history');body.replaceChildren();body.append(el('h3','Previous shopping lists'));for(const x of items){const b=action(new Date(x.created_at).toLocaleDateString('en-AU')+' — '+x.status,()=>{body.replaceChildren();body.append(el('pre',x.state.categories.map(c=>c.name+'\n'+c.items.filter(i=>i.selected).map(i=>'• '+i.name+(i.note?' — '+i.note:'')).join('\n')).join('\n\n')));body.append(action('Back',render))});body.append(b)}body.append(action('Back to current list',render))}catch(e){say(e.message,true)}}
   button.onclick=async()=>{overlay.hidden=false;preview=false;settings=false;body.replaceChildren();try{await load()}catch(e){say(e.message,true)}};
   overlay.querySelector('#shopClose').onclick=()=>overlay.hidden=true;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
+  void refreshButtonColour();
+  window.setInterval(()=>{if(overlay.hidden)void refreshButtonColour()},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&overlay.hidden)void refreshButtonColour()});
 })();
