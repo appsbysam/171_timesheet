@@ -1,4 +1,4 @@
-/* Production shared shopping list — v3.10.6 */
+/* Production shared shopping list — v3.10.7 */
 (() => {
   const css = `
   #shoppingOpenBtn{background:#1f6d55;color:white;font-weight:700}
@@ -54,7 +54,32 @@
     const {data,error}=await db.rpc('shopping_action',{p_token:managerSessionToken,p_action:actionName,p_state:state,p_revision:revision});
     if(error)throw Error(error.message);return data;
   }
-  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');setButtonColour(current);if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');setButtonColour(current);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
+  function showWeekChoice(){
+    const count=Number(current.carry_count)||0;
+    selectedCount.textContent=count+' item(s) from last week';
+    body.replaceChildren();
+    body.append(el('h3','New Week – Shopping List'));
+    body.append(el('p',count+' item(s) remain selected from the previous week.'));
+    body.append(el('p','Would you like to copy these items and their quantities into this week, or start with an empty list? Your choice applies to everyone.'));
+    const choices=el('div',undefined,'shop-actions');
+    async function decide(name){
+      if(busy)return;
+      busy=true;
+      for(const b of choices.querySelectorAll('button'))b.disabled=true;
+      try{
+        const result=await rpc(name,null,current.revision);
+        current=result;page=0;preview=false;setButtonColour(current);render();
+        say(name==='carry_week'?'Previous items carried over — ✓ Saved':'Fresh weekly list started — ✓ Saved');
+      }catch(e){
+        say(e.message,true);
+        try{await load()}catch(err){say(err.message,true)}
+      }finally{busy=false}
+    }
+    choices.append(action('Copy last week\'s items',()=>decide('carry_week'),true),action('Start with an empty list',()=>decide('clear_week')));
+    body.append(choices);
+    body.append(el('p','The previous list will be kept in Order History.','shop-muted'));
+  }
+  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');setButtonColour(current);if(current.pending_week){showWeekChoice();say('Choose how to start this week');return;}if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');setButtonColour(current);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
   let pendingSave=false, saving=false, generation=0;
   async function save(){
     pendingSave=true;
