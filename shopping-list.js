@@ -1,8 +1,11 @@
-/* Production shared shopping list — v3.10.9 */
+/* Production shared shopping list — v3.10.10 */
 (() => {
   const css = `
   #shoppingOpenBtn{background:#1f6d55;color:white;font-weight:700}
   #shoppingOpenBtn.shop-has-items{background:#c62828!important;border-color:#a51e1e!important;color:white!important}
+  #shoppingOpenBtn.shop-past-week{background:#d4d9df!important;border-color:#bdc5cd!important;color:#687481!important}
+  #shoppingOpenBtn.shop-future-week{background:transparent!important;border-color:#bdc5cd!important;color:inherit!important}
+  #shoppingOpenBtn:disabled{cursor:not-allowed;opacity:1}
   #shoppingPanel .shop-name{cursor:pointer}
   #shoppingOverlay[hidden]{display:none!important}
   #shoppingOverlay{position:fixed;inset:0;background:#0009;z-index:100000;display:flex;justify-content:center;align-items:center;padding:12px}
@@ -35,9 +38,28 @@
   const body=overlay.querySelector('#shopBody'), status=overlay.querySelector('#shopStatus'), selectedCount=overlay.querySelector('#shopSelectedCount');
   let current=null,page=0,preview=false,busy=false,settings=false;
   const perPage=8;
+  const weekInput=document.getElementById('weekStart');
+  let latestShoppingStatus=null;
+  function currentWeekValue(){
+    const d=new Date(),m=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    m.setDate(m.getDate()+(m.getDay()===0?1:1-m.getDay()));
+    return [m.getFullYear(),String(m.getMonth()+1).padStart(2,'0'),String(m.getDate()).padStart(2,'0')].join('-');
+  }
+  function viewedWeekType(){
+    const selected=weekInput?.value;
+    const today=currentWeekValue();
+    if(!selected)return 'unknown';
+    return selected<today?'past':selected>today?'future':'current';
+  }
   function setButtonColour(list){
-    const hasItems=!!(list?.id&&list.state?.categories?.some(cat=>cat.items?.some(item=>item.selected)));
-    button.classList.toggle('shop-has-items',hasItems);
+    if(list!==undefined)latestShoppingStatus=list;
+    const type=viewedWeekType();
+    const hasItems=!!(latestShoppingStatus?.id&&latestShoppingStatus.state?.categories?.some(cat=>cat.items?.some(item=>item.selected)));
+    button.classList.toggle('shop-past-week',type==='past');
+    button.classList.toggle('shop-future-week',type==='future');
+    button.classList.toggle('shop-has-items',type==='current'&&hasItems);
+    button.disabled=type!=='current';
+    button.title=type==='past'?'Previous week — shopping list is closed':type==='future'?'Upcoming week — shopping list is not open yet':'Current week shopping list';
   }
   async function refreshButtonColour(){
     if(saving||pendingSave)return false;
@@ -164,14 +186,18 @@
   }
   async function command(name){if(busy||saving||pendingSave){alert('Please wait for your changes to save first.');return}busy=true;try{const result=await rpc(name,null,current.revision);if(name==='ordered'){setButtonColour(null);say('Marked ordered. Start a new list when ready.');current=null;body.replaceChildren();body.append(action('Start next list',async()=>{try{current=await rpc('new',null,result.revision);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}}))}else{current=result;setButtonColour(current);preview=false;page=0;say('New shared list started');render()}}catch(e){say(e.message,true)}finally{busy=false}}
   async function history(){try{const items=await rpc('history');body.replaceChildren();body.append(el('h3','Previous shopping lists'));for(const x of items){const b=action(new Date(x.created_at).toLocaleDateString('en-AU')+' — '+x.status,()=>{body.replaceChildren();body.append(el('pre',x.state.categories.map(c=>c.name+'\n'+c.items.filter(i=>i.selected).map(i=>'• '+i.name+(i.note?' — '+i.note:'')).join('\n')).join('\n\n')));body.append(action('Back',render))});body.append(b)}body.append(action('Back to current list',render))}catch(e){say(e.message,true)}}
-  button.onclick=async()=>{overlay.hidden=false;preview=false;settings=false;body.replaceChildren();try{await load()}catch(e){say(e.message,true)}};
+  button.onclick=async()=>{if(viewedWeekType()!=='current')return;overlay.hidden=false;preview=false;settings=false;body.replaceChildren();try{await load()}catch(e){say(e.message,true)}};
   overlay.querySelector('#shopClose').onclick=()=>overlay.hidden=true;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
   // PIN login is asynchronous: retry promptly until the first successful status check.
   let initialColourLoaded=false;
   async function syncColour(){if(!overlay.hidden)return;const ok=await refreshButtonColour();if(ok)initialColourLoaded=true}
+  let lastViewedWeek=weekInput?.value||'';
+  setButtonColour();
   void syncColour();
   window.setInterval(()=>{if(!initialColourLoaded)void syncColour()},1500);
+  weekInput?.addEventListener('change',()=>setButtonColour());
+  window.setInterval(()=>{const week=weekInput?.value||'';if(week!==lastViewedWeek){lastViewedWeek=week;setButtonColour()}},500);
   window.setInterval(()=>{if(overlay.hidden)void syncColour()},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&overlay.hidden)void syncColour()});
 })();
