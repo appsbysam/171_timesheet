@@ -1,4 +1,4 @@
-/* Production shared shopping list — v3.10.10 */
+/* Production shared shopping list — v3.10.11 */
 (() => {
   const css = `
   #shoppingOpenBtn{background:#1f6d55;color:white;font-weight:700}
@@ -58,8 +58,8 @@
     button.classList.toggle('shop-past-week',type==='past');
     button.classList.toggle('shop-future-week',type==='future');
     button.classList.toggle('shop-has-items',type==='current'&&hasItems);
-    button.disabled=type!=='current';
-    button.title=type==='past'?'Previous week — shopping list is closed':type==='future'?'Upcoming week — shopping list is not open yet':'Current week shopping list';
+    button.disabled=type==='future';
+    button.title=type==='past'?'View previous week — read only':type==='future'?'Upcoming week — shopping list is not open yet':'Current week shopping list';
   }
   async function refreshButtonColour(){
     if(saving||pendingSave)return false;
@@ -186,7 +186,38 @@
   }
   async function command(name){if(busy||saving||pendingSave){alert('Please wait for your changes to save first.');return}busy=true;try{const result=await rpc(name,null,current.revision);if(name==='ordered'){setButtonColour(null);say('Marked ordered. Start a new list when ready.');current=null;body.replaceChildren();body.append(action('Start next list',async()=>{try{current=await rpc('new',null,result.revision);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}}))}else{current=result;setButtonColour(current);preview=false;page=0;say('New shared list started');render()}}catch(e){say(e.message,true)}finally{busy=false}}
   async function history(){try{const items=await rpc('history');body.replaceChildren();body.append(el('h3','Previous shopping lists'));for(const x of items){const b=action(new Date(x.created_at).toLocaleDateString('en-AU')+' — '+x.status,()=>{body.replaceChildren();body.append(el('pre',x.state.categories.map(c=>c.name+'\n'+c.items.filter(i=>i.selected).map(i=>'• '+i.name+(i.note?' — '+i.note:'')).join('\n')).join('\n\n')));body.append(action('Back',render))});body.append(b)}body.append(action('Back to current list',render))}catch(e){say(e.message,true)}}
-  button.onclick=async()=>{if(viewedWeekType()!=='current')return;overlay.hidden=false;preview=false;settings=false;body.replaceChildren();try{await load()}catch(e){say(e.message,true)}};
+  async function viewPastWeek(){
+    const week=weekInput.value;
+    selectedCount.textContent='Previous week — read only';
+    say('');
+    body.replaceChildren();
+    body.append(el('h3','Shopping List — Week of '+week));
+    const notice=el('p','You are viewing a previous week’s shopping list. You cannot make changes to this list.','shop-muted');
+    notice.style.cssText='background:#f0f2f5;padding:12px;border-radius:8px';
+    body.append(notice);
+    const records=await rpc('history_week',{week});
+    if(!records.length){body.append(el('p','No shopping list records are available for this week.'));return;}
+    for(const record of records){
+      const block=el('div');block.style.cssText='border:1px solid #ddd;border-radius:9px;padding:10px;margin:10px 0';
+      const heading=el('h3',new Date(record.created_at).toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'})+' — '+(record.status==='ordered'?'Ordered':record.status==='archived'?'Archived':'Not yet ordered'));
+      block.append(heading);
+      let found=0;
+      for(const cat of record.state?.categories||[]){
+        const items=(cat.items||[]).filter(i=>i.selected);
+        if(!items.length)continue;
+        found+=items.length;block.append(el('h4',cat.name));
+        for(const item of items)block.append(el('p','• '+item.name+(item.note?' — '+item.note:'')));
+      }
+      if(!found)block.append(el('p','No items were selected.'));
+      body.append(block);
+    }
+  }
+  button.onclick=async()=>{
+    const type=viewedWeekType();
+    if(type==='future')return;
+    overlay.hidden=false;preview=false;settings=false;body.replaceChildren();
+    try{if(type==='past')await viewPastWeek();else await load()}catch(e){say(e.message,true)}
+  };
   overlay.querySelector('#shopClose').onclick=()=>overlay.hidden=true;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
   // PIN login is asynchronous: retry promptly until the first successful status check.
