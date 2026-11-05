@@ -1,4 +1,4 @@
-/* Production shared shopping list — v3.10.8 */
+/* Production shared shopping list — v3.10.9 */
 (() => {
   const css = `
   #shoppingOpenBtn{background:#1f6d55;color:white;font-weight:700}
@@ -40,8 +40,8 @@
     button.classList.toggle('shop-has-items',hasItems);
   }
   async function refreshButtonColour(){
-    if(saving||pendingSave)return;
-    try{const list=await rpc('load');setButtonColour(list)}catch(error){console.warn('Shopping button status unavailable:',error)}
+    if(saving||pendingSave)return false;
+    try{const list=await rpc('load');setButtonColour(list);return true}catch(error){console.warn('Shopping button status unavailable:',error);return false}
   }
   const button=document.createElement('button');button.id='shoppingOpenBtn';button.type='button';button.textContent='🛒 Shopping List';
   const print=document.querySelector('#printBtn'); if(print) print.insertAdjacentElement('afterend',button);
@@ -59,9 +59,9 @@
     const count=Number(current.carry_count)||0;
     selectedCount.textContent=count+' item(s) from last week';
     body.replaceChildren();
-    body.append(el('h3','New Week – Shopping List'));
-    body.append(el('p',count+' item(s) remain selected from the previous week.'));
-    body.append(el('p','Would you like to copy these items and their quantities into this week, or start with an empty list? Your choice applies to everyone.'));
+    body.append(el('h3','Outstanding Shopping List'));
+    body.append(el('p',count+' item(s) from last week have not been marked as ordered.'));
+    body.append(el('p','Before starting this week, you must either carry these outstanding items forward or archive last week without ordering. If the order was actually placed, mark it as ordered instead. Your choice applies to everyone.'));
     const choices=el('div',undefined,'shop-actions');
     async function decide(name){
       if(busy)return;
@@ -70,17 +70,17 @@
       try{
         const result=await rpc(name,null,current.revision);
         current=result;page=0;preview=false;setButtonColour(current);render();
-        say(name==='carry_week'?'Previous items carried over — ✓ Saved':'Fresh weekly list started — ✓ Saved');
+        say(name==='carry_week'?'Outstanding items carried over — ✓ Saved':name==='ordered_previous_week'?'Previous week marked ordered — ✓ Saved':'Previous week archived — ✓ Saved');
       }catch(e){
         say(e.message,true);
         try{await load()}catch(err){say(err.message,true)}
       }finally{busy=false}
     }
-    choices.append(action('Copy last week\'s items',()=>decide('carry_week'),true),action('Start with an empty list',()=>decide('clear_week')));
+    choices.append(action('Carry over to this week',()=>decide('carry_week'),true),action('Archive previous week',()=>decide('clear_week')),action('Mark previous week as ordered',()=>{if(confirm('Confirm that the previous week\'s shopping list was actually ordered?'))void decide('ordered_previous_week')}));
     body.append(choices);
-    body.append(el('p','The previous list will be kept in Order History.','shop-muted'));
+    body.append(el('p','All choices preserve the previous list in Order History.','shop-muted'));
   }
-  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');setButtonColour(current);if(current.pending_week){showWeekChoice();say('Choose how to start this week');return;}if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');setButtonColour(current);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
+  async function load(){generation++;pendingSave=false;say('Loading shared list…');current=await rpc('load');setButtonColour(current);if(current.pending_week){if(Number(current.carry_count)===0){try{current=await rpc('clear_week',null,current.revision);setButtonColour(current)}catch(e){say(e.message,true);return}}else{showWeekChoice();say('Resolve last week\'s outstanding items');return;}}if(!current.id){body.replaceChildren();body.append(el('p','Previous list was ordered. Start a fresh shopping list when ready.'));body.append(action('Start new list',async()=>{try{current=await rpc('new');setButtonColour(current);page=0;preview=false;render();say('New shared list started')}catch(e){say(e.message,true)}} ,true));return;}say('');render()}
   let pendingSave=false, saving=false, generation=0;
   async function save(){
     pendingSave=true;
@@ -167,7 +167,11 @@
   button.onclick=async()=>{overlay.hidden=false;preview=false;settings=false;body.replaceChildren();try{await load()}catch(e){say(e.message,true)}};
   overlay.querySelector('#shopClose').onclick=()=>overlay.hidden=true;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
-  void refreshButtonColour();
-  window.setInterval(()=>{if(overlay.hidden)void refreshButtonColour()},30000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&overlay.hidden)void refreshButtonColour()});
+  // PIN login is asynchronous: retry promptly until the first successful status check.
+  let initialColourLoaded=false;
+  async function syncColour(){if(!overlay.hidden)return;const ok=await refreshButtonColour();if(ok)initialColourLoaded=true}
+  void syncColour();
+  window.setInterval(()=>{if(!initialColourLoaded)void syncColour()},1500);
+  window.setInterval(()=>{if(overlay.hidden)void syncColour()},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&overlay.hidden)void syncColour()});
 })();
